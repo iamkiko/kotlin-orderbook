@@ -7,7 +7,7 @@ enum class OrderSide {
 data class Order(
 //    val id: String, TODO(): come back to this e.g. cancelling orders as a stretch goal
     val side: OrderSide,
-    val quantity: Double,
+    var quantity: Double, // TODO(): Big decimal for sats
     val price: Double,
     val currencyPair: String,
 )

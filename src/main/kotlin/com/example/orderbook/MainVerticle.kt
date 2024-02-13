@@ -3,6 +3,7 @@ package com.example.orderbook
 import com.example.orderbook.api.controllers.OrderController
 import com.example.orderbook.model.OrderBook
 import com.example.orderbook.service.OrderBookService
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import io.vertx.core.AbstractVerticle
 import io.vertx.core.Promise
 import io.vertx.ext.web.Router
@@ -12,6 +13,7 @@ import io.vertx.ext.web.handler.BodyHandler
 class MainVerticle : AbstractVerticle() {
 
     override fun start(promise: Promise<Void>) {
+        val mapper = jacksonObjectMapper()
         val router = Router.router(vertx)
         router.route().handler(BodyHandler.create()) // to parse incoming requests
 
@@ -23,9 +25,10 @@ class MainVerticle : AbstractVerticle() {
 
         // Orderbook
         val orderBookService = OrderBookService(OrderBook())
-        val orderController = OrderController(vertx, orderBookService)
+        val orderController = OrderController(vertx, orderBookService, mapper)
         router.get("/api/orderbook").handler(orderController::handleGetOrderBook)
-        router.post("/api/order/limit").handler(orderController::handleAddLimitOrder)
+        // Limit order
+        router.post("/api/orders/limit").handler(orderController::handleAddLimitOrder)
 
 
         vertx.createHttpServer()

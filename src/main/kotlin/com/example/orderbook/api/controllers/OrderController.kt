@@ -4,13 +4,14 @@ import com.example.orderbook.api.dto.OrderDTO
 import com.example.orderbook.model.Order
 import com.example.orderbook.model.OrderSide
 import com.example.orderbook.service.OrderBookService
+import com.fasterxml.jackson.databind.ObjectMapper
 import io.vertx.core.Vertx
 import io.vertx.core.json.Json
 import io.vertx.ext.web.Router
 import io.vertx.ext.web.RoutingContext
 import java.lang.Double.valueOf
 
-class OrderController(vertx: Vertx, private val orderBookService: OrderBookService) {
+class OrderController(vertx: Vertx, private val orderBookService: OrderBookService, private val mapper: ObjectMapper) {
     private val router: Router = Router.router(vertx)
 
     init {
@@ -24,19 +25,19 @@ class OrderController(vertx: Vertx, private val orderBookService: OrderBookServi
 
     fun handleGetOrderBook(ctx: RoutingContext) {
         val orderBook = orderBookService.getOrderBookDTO()
+        val json = mapper.writeValueAsString(orderBook)
         ctx.response()
             .putHeader("Content-Type", "application/json")
-            .end(Json.encodePrettily(orderBook))
+            .end(json)
     }
 
     fun handleAddLimitOrder(ctx: RoutingContext) {
         try {
-            val orderRequestJson = ctx.body().asJsonObject()
-            val orderRequest = orderRequestJson.mapTo(OrderDTO::class.java) // get the JSON to match the DTO
+            val orderRequest = mapper.readValue(ctx.body().asString(), OrderDTO::class.java)
             val order = Order(
                 side = OrderSide.valueOf(orderRequest.side),
-                quantity = valueOf(orderRequest.quantity), //TODO() confirm this is working as intended for extracting doubles
-                price = valueOf(orderRequest.price),
+                quantity = orderRequest.quantity,
+                price = orderRequest.price,
                 currencyPair = orderRequest.currencyPair
             )
             orderBookService.addOrder(order)
@@ -46,6 +47,11 @@ class OrderController(vertx: Vertx, private val orderBookService: OrderBookServi
         } catch (e: IllegalArgumentException) {
             ctx.response()
                 .setStatusCode(400)
+                .putHeader("Content-Type", "application/json")
+                .end(Json.encodePrettily(mapOf("error" to e.message)))
+        } catch (e: InternalError) {
+            ctx.response()
+                .setStatusCode(500)
                 .putHeader("Content-Type", "application/json")
                 .end(Json.encodePrettily(mapOf("error" to e.message)))
         }

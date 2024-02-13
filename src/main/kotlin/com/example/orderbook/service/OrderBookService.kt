@@ -5,7 +5,7 @@ import com.example.orderbook.api.dto.OrderDTO
 import com.example.orderbook.model.Order
 import com.example.orderbook.model.OrderBook
 import com.example.orderbook.model.OrderSide
-import java.util.*
+import kotlin.math.min
 
 class OrderBookService(private val orderBook: OrderBook) {
 
@@ -14,22 +14,32 @@ class OrderBookService(private val orderBook: OrderBook) {
             OrderSide.BUY -> orderBook.bids.offer(order)
             OrderSide.SELL -> orderBook.asks.offer(order)
         }
-        orderBook.updateLastChange()
+        orderBook.updateLastUpdated()
         matchOrders()
     }
 
-    private fun matchOrders() {
+    fun matchOrders() {
         while (true) {
             val topBid = orderBook.bids.peek() // get the top most item in this stack i.e. top order
             val topAsk = orderBook.asks.peek()
 
-            // if price has spread, then don't match
+            // if price has spread, then don't match or if asks/bids don't exist
             if (topBid == null || topAsk == null || topBid.price < topAsk.price) break
 
-            orderBook.bids.poll() // remove the top most item in this stack e.g top order when fulfilled
-            orderBook.asks.poll()
+           val tradeQuantity = min(topBid.quantity, topAsk.quantity)
+            topBid.quantity -= tradeQuantity
+            topAsk.quantity -= tradeQuantity
 
-            orderBook.updateLastChange()
+            if (topBid.quantity <= 0.0) {
+                orderBook.bids.poll()
+            }
+
+            if (topAsk.quantity <= 0.0) {
+                orderBook.asks.poll()
+            }
+
+            // TODO(): will need to record this trade to be able to add it to the trade history
+            orderBook.updateLastUpdated()
         }
     }
 
@@ -56,11 +66,12 @@ class OrderBookService(private val orderBook: OrderBook) {
         return OrderBookDTO(
             asks = askList,
             bids = bidList,
-            lastChange = orderBook.lastChange.toString(),
-            sequenceNumber = orderBook.sequenceNumber
+            lastUpdated = orderBook.lastUpdated.toString(),
+            tradeSequenceNumber = orderBook.tradeSequenceNumber
         )
     }
 
+    // TODO() trade history, store in data structure when trade is successful
 
     // TODO() cancel orders, take in an orderId
 }
