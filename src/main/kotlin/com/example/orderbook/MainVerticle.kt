@@ -6,12 +6,14 @@ import com.example.orderbook.service.OrderBookService
 import io.vertx.core.AbstractVerticle
 import io.vertx.core.Promise
 import io.vertx.ext.web.Router
+import io.vertx.ext.web.handler.BodyHandler
 
 
 class MainVerticle : AbstractVerticle() {
 
     override fun start(promise: Promise<Void>) {
         val router = Router.router(vertx)
+        router.route().handler(BodyHandler.create()) // to parse incoming requests
 
         router.get("/healthcheck").handler { routingContext ->
             val response = routingContext.response()
@@ -23,6 +25,7 @@ class MainVerticle : AbstractVerticle() {
         val orderBookService = OrderBookService(OrderBook())
         val orderController = OrderController(vertx, orderBookService)
         router.get("/api/orderbook").handler(orderController::handleGetOrderBook)
+        router.post("/api/order/limit").handler(orderController::handleAddLimitOrder)
 
 
         vertx.createHttpServer()

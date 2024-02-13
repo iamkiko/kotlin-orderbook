@@ -4,24 +4,33 @@ import com.example.orderbook.api.dto.OrderBookDTO
 import com.example.orderbook.api.dto.OrderDTO
 import com.example.orderbook.model.Order
 import com.example.orderbook.model.OrderBook
+import com.example.orderbook.model.OrderSide
 import java.util.*
 
 class OrderBookService(private val orderBook: OrderBook) {
 
-    private val askComparator = compareBy<Order> { it.price }
-    private val bidComparator = compareByDescending<Order> { it.price }
+    fun addOrder(order: Order) {
+        when(order.side) {
+            OrderSide.BUY -> orderBook.bids.offer(order)
+            OrderSide.SELL -> orderBook.asks.offer(order)
+        }
+        orderBook.updateLastChange()
+        matchOrders()
+    }
 
-    private val asks = PriorityQueue(askComparator)
-    private val bids = PriorityQueue(bidComparator)
+    private fun matchOrders() {
+        while (true) {
+            val topBid = orderBook.bids.peek() // get the top most item in this stack i.e. top order
+            val topAsk = orderBook.asks.peek()
 
+            // if price has spread, then don't match
+            if (topBid == null || topAsk == null || topBid.price < topAsk.price) break
 
-    fun getOrderBook(): OrderBook {
-        return OrderBook(
-            asks = asks,
-            bids = bids,
-            lastChange = orderBook.lastChange,
-            sequenceNumber = orderBook.sequenceNumber
-        )
+            orderBook.bids.poll() // remove the top most item in this stack e.g top order when fulfilled
+            orderBook.asks.poll()
+
+            orderBook.updateLastChange()
+        }
     }
 
     fun getOrderBookDTO(): OrderBookDTO {

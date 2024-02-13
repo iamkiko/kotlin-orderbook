@@ -1,10 +1,14 @@
 package com.example.orderbook.api.controllers
 
+import com.example.orderbook.api.dto.OrderDTO
+import com.example.orderbook.model.Order
+import com.example.orderbook.model.OrderSide
 import com.example.orderbook.service.OrderBookService
 import io.vertx.core.Vertx
 import io.vertx.core.json.Json
 import io.vertx.ext.web.Router
 import io.vertx.ext.web.RoutingContext
+import java.lang.Double.valueOf
 
 class OrderController(vertx: Vertx, private val orderBookService: OrderBookService) {
     private val router: Router = Router.router(vertx)
@@ -15,6 +19,7 @@ class OrderController(vertx: Vertx, private val orderBookService: OrderBookServi
 
     private fun setupRoutes() {
         router.get("/api/orderbook").handler(this::handleGetOrderBook)
+        router.post("/api/orders/limit").handler(this::handleAddLimitOrder)
     }
 
     fun handleGetOrderBook(ctx: RoutingContext) {
@@ -22,5 +27,27 @@ class OrderController(vertx: Vertx, private val orderBookService: OrderBookServi
         ctx.response()
             .putHeader("Content-Type", "application/json")
             .end(Json.encodePrettily(orderBook))
+    }
+
+    fun handleAddLimitOrder(ctx: RoutingContext) {
+        try {
+            val orderRequestJson = ctx.body().asJsonObject()
+            val orderRequest = orderRequestJson.mapTo(OrderDTO::class.java) // get the JSON to match the DTO
+            val order = Order(
+                side = OrderSide.valueOf(orderRequest.side),
+                quantity = valueOf(orderRequest.quantity), //TODO() confirm this is working as intended for extracting doubles
+                price = valueOf(orderRequest.price),
+                currencyPair = orderRequest.currencyPair
+            )
+            orderBookService.addOrder(order)
+            ctx.response()
+                .putHeader("Content-Type", "application/json")
+                .end(Json.encodePrettily(mapOf("message" to "Order added successfully")))
+        } catch (e: IllegalArgumentException) {
+            ctx.response()
+                .setStatusCode(400)
+                .putHeader("Content-Type", "application/json")
+                .end(Json.encodePrettily(mapOf("error" to e.message)))
+        }
     }
 }
