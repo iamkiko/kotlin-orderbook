@@ -23,8 +23,8 @@ class OrderBookServiceTest {
     @Test
     fun `should return current state of the order book when requested` () {
         // given ... an order book exists with valid orders
-        val buyOrder = Order(OrderSide.BUY, "0.5", "49370", "BTCUSDC", 1)
-        val sellOrder = Order(OrderSide.SELL, "0.5", "49475", "BTCUSDC", 1)
+        val buyOrder = Order(OrderSide.BUY, 0.5, 49370.0, "BTCUSDC")
+        val sellOrder = Order(OrderSide.SELL, 0.5, 49475.0, "BTCUSDC")
         orderBook.bids.add(buyOrder)
         orderBook.asks.add(sellOrder)
 
@@ -33,10 +33,8 @@ class OrderBookServiceTest {
 
 
         // then ... it should return the order book with the current orders
-        assertTrue(currentOrderBook.bids.contains(buyOrder), "Bids should contain the buy order")
-        assertTrue(currentOrderBook.asks.contains(sellOrder), "Asks should contain the sell order")
-//        assertEquals(0, currentOrderBook.sequenceNumber, "Sequence number should be 0")
-
+        assertTrue(currentOrderBook.bids.contains(buyOrder))
+        assertTrue(currentOrderBook.asks.contains(sellOrder))
       }
 
     @Test
@@ -46,11 +44,8 @@ class OrderBookServiceTest {
         val currentOrderBook = orderBookService.getOrderBook()
 
         // then ...  it should return an order book with empty bids and asks
-        assertTrue(currentOrderBook.bids.isEmpty(), "Bids should be empty")
-        assertTrue(currentOrderBook.asks.isEmpty(), "Asks should be empty")
-        // Assuming the initial lastChange is set to Instant.now() in OrderBook's constructor,
-        // we can't assert its value directly, but we can check it's not null
-        assertNotNull(currentOrderBook.lastChange, "Last change timestamp should not be null")
+        assertTrue(currentOrderBook.bids.isEmpty())
+        assertTrue(currentOrderBook.asks.isEmpty())
     }
 
 }

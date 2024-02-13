@@ -1,4 +1,4 @@
-package com.example.orderbook.api
+package com.example.orderbook.api.controllers
 
 import com.example.orderbook.service.OrderBookService
 import io.vertx.core.Vertx
@@ -18,7 +18,7 @@ class OrderController(vertx: Vertx, private val orderBookService: OrderBookServi
     }
 
     fun handleGetOrderBook(ctx: RoutingContext) {
-        val orderBook = orderBookService.getOrderBook()
+        val orderBook = orderBookService.getOrderBookDTO()
         ctx.response()
             .putHeader("Content-Type", "application/json")
             .end(Json.encodePrettily(orderBook))

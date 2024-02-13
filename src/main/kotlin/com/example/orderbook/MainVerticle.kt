@@ -1,12 +1,11 @@
 package com.example.orderbook
 
-import com.example.orderbook.api.OrderController
+import com.example.orderbook.api.controllers.OrderController
 import com.example.orderbook.model.OrderBook
 import com.example.orderbook.service.OrderBookService
 import io.vertx.core.AbstractVerticle
 import io.vertx.core.Promise
 import io.vertx.ext.web.Router
-import io.vertx.ext.web.handler.BodyHandler
 
 
 class MainVerticle : AbstractVerticle() {
