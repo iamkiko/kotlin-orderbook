@@ -19,6 +19,7 @@ dependencies {
     implementation("io.vertx:vertx-auth-jwt:4.5.3")
 
     // Tests
+    testImplementation("org.junit.jupiter:junit-jupiter-api:5.10.2")
     testImplementation("io.mockk:mockk:1.13.9")
     testImplementation(kotlin("test"))
 

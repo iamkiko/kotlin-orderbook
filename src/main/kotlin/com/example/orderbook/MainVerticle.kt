@@ -1,8 +1,12 @@
 package com.example.orderbook
 
+import com.example.orderbook.api.OrderController
+import com.example.orderbook.model.OrderBook
+import com.example.orderbook.service.OrderBookService
 import io.vertx.core.AbstractVerticle
 import io.vertx.core.Promise
 import io.vertx.ext.web.Router
+import io.vertx.ext.web.handler.BodyHandler
 
 
 class MainVerticle : AbstractVerticle() {
@@ -17,28 +21,10 @@ class MainVerticle : AbstractVerticle() {
         }
 
         // Orderbook
-        router.get("/api/orderbook").handler { context ->
-            // TODO: Retrieve and respond with the order book data
-            context.response()
-                .putHeader("content-type", "application/json")
-                .end("Order book data goes here")
-        }
+        val orderBookService = OrderBookService(OrderBook())
+        val orderController = OrderController(vertx, orderBookService)
+        router.get("/api/orderbook").handler(orderController::handleGetOrderBook)
 
-        // Limit order
-        router.post("/api/orders/limit").handler { context ->
-            // TODO: Handle the submission of a limit order
-            context.response()
-                .putHeader("content-type", "application/json")
-                .end("Response for a submitted limit order goes here")
-        }
-
-        // Recent trades
-        router.get("/api/trades/recent").handler { context ->
-            // TODO: Retrieve and respond with recent trades data
-            context.response()
-                .putHeader("content-type", "application/json")
-                .end("Recent trades data goes here")
-        }
 
         vertx.createHttpServer()
             .requestHandler(router)
@@ -52,4 +38,5 @@ class MainVerticle : AbstractVerticle() {
                 promise.fail(throwable)
             }
     }
+
 }

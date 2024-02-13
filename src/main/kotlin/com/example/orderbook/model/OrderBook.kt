@@ -1,0 +1,17 @@
+package com.example.orderbook.model
+
+import java.time.Instant
+import java.util.*
+
+
+data class OrderBook(
+    val asks: PriorityQueue<Order> = PriorityQueue(),
+    val bids: PriorityQueue<Order> = PriorityQueue(),
+    var lastChange: Instant = Instant.now(),
+    var sequenceNumber: Long = 0L,
+) {
+    fun updateLastChange() {
+        lastChange = Instant.now()
+        sequenceNumber++
+    }
+}
