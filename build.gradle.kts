@@ -15,6 +15,7 @@ dependencies {
     implementation("io.vertx:vertx-lang-kotlin:4.5.3")
     implementation("io.vertx:vertx-core:4.5.3")
     implementation("io.vertx:vertx-web:4.5.3")
+    implementation("io.vertx:vertx-web-client:4.5.3")
     implementation("io.vertx:vertx-config:4.5.3")
     implementation("io.vertx:vertx-auth-jwt:4.5.3")
 
@@ -24,6 +25,7 @@ dependencies {
 
     // Tests
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.10.2")
+    testImplementation("io.vertx:vertx-junit5:4.5.3")
     testImplementation("io.mockk:mockk:1.13.9")
     testImplementation(kotlin("test"))
 

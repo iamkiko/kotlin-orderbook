@@ -9,7 +9,6 @@ import io.vertx.core.Vertx
 import io.vertx.core.json.Json
 import io.vertx.ext.web.Router
 import io.vertx.ext.web.RoutingContext
-import java.lang.Double.valueOf
 
 class OrderController(vertx: Vertx, private val orderBookService: OrderBookService, private val mapper: ObjectMapper) {
     private val router: Router = Router.router(vertx)
@@ -18,7 +17,7 @@ class OrderController(vertx: Vertx, private val orderBookService: OrderBookServi
         setupRoutes()
     }
 
-    private fun setupRoutes() {
+    fun setupRoutes() {
         router.get("/api/orderbook").handler(this::handleGetOrderBook)
         router.post("/api/orders/limit").handler(this::handleAddLimitOrder)
     }
@@ -42,6 +41,7 @@ class OrderController(vertx: Vertx, private val orderBookService: OrderBookServi
             )
             orderBookService.addOrder(order)
             ctx.response()
+                .setStatusCode(201)
                 .putHeader("Content-Type", "application/json")
                 .end(Json.encodePrettily(mapOf("message" to "Order added successfully")))
         } catch (e: IllegalArgumentException) {
