@@ -20,7 +20,7 @@ class OrderBookService(private val orderBook: OrderBook) {
 
     fun matchOrders() {
         while (true) {
-            val topBid = orderBook.bids.peek() // get the top most item in this stack i.e. top order
+            val topBid = orderBook.bids.peek() // retrieve the top most item in this stack i.e. top order
             val topAsk = orderBook.asks.peek()
 
             // if price has spread, then don't match or if asks/bids don't exist
@@ -31,11 +31,11 @@ class OrderBookService(private val orderBook: OrderBook) {
             topAsk.quantity -= tradeQuantity
 
             if (topBid.quantity <= 0.0) {
-                orderBook.bids.poll()
+                orderBook.bids.poll() // order has been fulfilled, remove from book
             }
 
             if (topAsk.quantity <= 0.0) {
-                orderBook.asks.poll()
+                orderBook.asks.poll() // order has been fulfilled, remove from book
             }
 
             // TODO(): will need to record this trade to be able to add it to the trade history

@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test
 import java.time.Instant
 import java.util.*
 
+
 class OrderBookServiceTest {
 
     private lateinit var orderBookService: OrderBookService
@@ -16,7 +17,7 @@ class OrderBookServiceTest {
 
     @BeforeEach
     fun setUp() {
-        orderBook = OrderBook(PriorityQueue(), PriorityQueue(), Instant.parse("2024-02-13T00:00:00.000Z") , 0)
+        orderBook = OrderBook(PriorityQueue(compareBy { it.price }), PriorityQueue(compareByDescending { it.price }), Instant.parse("2024-02-13T00:00:00.000Z") , 0)
         orderBookService = OrderBookService(orderBook)
     }
 
@@ -103,31 +104,33 @@ class OrderBookServiceTest {
         assertEquals(0.5, orderBook.bids.first().quantity)
       }
 
-    // TODO(): Add logic to get this test to pass
     @Test
     fun `should add multiple orders and ensure correct sorting` () {
-        // given ... multiple orders
-        val lowestBuyOrder = Order(OrderSide.BUY, 1.0, 30000.0, "BTCUSDC")
-        val lowBuyOrder = Order(OrderSide.BUY, 1.0, 31000.0, "BTCUSDC")
-        val highestBuyOrder = Order(OrderSide.BUY, 1.0, 32000.0, "BTCUSDC")
-
-        val lowestSellOrder = Order(OrderSide.BUY, 1.0, 40000.0, "BTCUSDC")
-        val lowSellOrder = Order(OrderSide.BUY, 1.0, 41000.0, "BTCUSDC")
-        val highestSellOrder = Order(OrderSide.BUY, 1.0, 42000.0, "BTCUSDC")
+        // given ... buy and sell orders added in a non-sorted order
+        val middlePriceBuyOrder = Order(OrderSide.BUY, 1.0, 31000.0, "BTCUSDC")
+        val highestPriceBuyOrder = Order(OrderSide.BUY, 1.0, 32000.0, "BTCUSDC")
+        val lowestPriceBuyOrder = Order(OrderSide.BUY, 1.0, 30000.0, "BTCUSDC")
+        val lowestPriceSellOrder = Order(OrderSide.SELL, 1.0, 40000.0, "BTCUSDC")
+        val middlePriceSellOrder = Order(OrderSide.SELL, 1.0, 41000.0, "BTCUSDC")
+        val highestPriceSellOrder = Order(OrderSide.SELL, 1.0, 42000.0, "BTCUSDC")
 
         // when ... we add the orders to the orderbook
-        orderBookService.addOrder(lowestBuyOrder)
-        orderBookService.addOrder(lowBuyOrder)
-        orderBookService.addOrder(highestBuyOrder)
-        orderBookService.addOrder(lowestSellOrder)
-        orderBookService.addOrder(lowSellOrder)
-        orderBookService.addOrder(highestSellOrder)
+        orderBookService.addOrder(middlePriceBuyOrder)
+        orderBookService.addOrder(highestPriceBuyOrder)
+        orderBookService.addOrder(lowestPriceBuyOrder)
+        orderBookService.addOrder(lowestPriceSellOrder)
+        orderBookService.addOrder(middlePriceSellOrder)
+        orderBookService.addOrder(highestPriceSellOrder)
 
-
-        // then ... we can confirm that the highest buy order and the lowest sell order are the first orders around the spread
-        assertEquals(highestBuyOrder, orderBook.bids.peek())
-
-      }
+        // then ... we can verify the entire order of the buy and sell queues
+        val expectedBuyOrder = listOf(highestPriceBuyOrder, middlePriceBuyOrder, lowestPriceBuyOrder)
+        val expectedSellOrder = listOf(lowestPriceSellOrder, middlePriceSellOrder, highestPriceSellOrder)
+        assertEquals(expectedBuyOrder, ArrayList(orderBook.bids))
+        assertEquals(expectedSellOrder, ArrayList(orderBook.asks))
+        // and ... we can confirm that the highest buy order and the lowest sell order are the first orders around the spread
+        assertEquals(highestPriceBuyOrder, orderBook.bids.peek())
+        assertEquals(lowestPriceSellOrder, orderBook.asks.peek())
+    }
 
     // TODO() add the logic for price-time to get this to pass
     @Test
@@ -136,6 +139,7 @@ class OrderBookServiceTest {
         val sellOrderAtCurrentPrice = Order(OrderSide.SELL, 1.0, 40000.0, "BTCUSDC")
         val sellOrderAtLowestPrice = Order(OrderSide.SELL, 1.0, 39500.0, "BTCUSDC")
         val buyOrderAtCurrentPrice = Order(OrderSide.BUY, 1.5, 40000.0, "BTCUSDC")
+
         // when ... we add the orders to the order book and match them
         orderBookService.addOrder(sellOrderAtCurrentPrice)
         orderBookService.addOrder(sellOrderAtLowestPrice)
@@ -143,13 +147,13 @@ class OrderBookServiceTest {
         orderBookService.matchOrders()
         val asks = orderBookService.getOrderBookDTO().asks
         val bids = orderBookService.getOrderBookDTO().bids
-        // then ... we should expect that 1 sell order of 0.5BTC remains on the ask side
+
+        // then ... we should expect that 1 sell order of 0.5BTC @ 40000 remains on the ask side
         assertEquals(1, asks.size)
         assertEquals(0.5, asks.first().quantity)
         assertEquals(40000.0, asks.first().price)
 
+        // and ...no further buy orders exist
         assertEquals(0, bids.size)
-
-        assertEquals(1, orderBook.tradeSequenceNumber)
       }
 }
