@@ -76,11 +76,10 @@ class OrderControllerTest {
         // when ... sent to our controller
         val responseFuture = request.sendJsonObject(orderDTO)
 
-        // then ... we can assert that it was successful based on API response code + message
+        // then ... we can assert that it was successful based on API response code (created)
         responseFuture.onComplete(vertxTestContext.succeeding { response ->
             vertxTestContext.verify {
-                assertEquals(200, response.statusCode()) // TODO(): this should return a 201 created
-                assertEquals("Order added successfully", response.bodyAsJsonObject().getString("message"))
+                assertEquals(201, response.statusCode())
                 vertxTestContext.completeNow()
             }
         })

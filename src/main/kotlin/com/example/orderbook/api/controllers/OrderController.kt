@@ -39,11 +39,11 @@ class OrderController(vertx: Vertx, private val orderBookService: OrderBookServi
                 price = orderRequest.price,
                 currencyPair = orderRequest.currencyPair
             )
-            orderBookService.addOrder(order)
+            val additionStatusToReturnToUser = orderBookService.addOrder(order)
             ctx.response()
                 .setStatusCode(201)
                 .putHeader("Content-Type", "application/json")
-                .end(Json.encodePrettily(mapOf("message" to "Order added successfully")))
+                .end(Json.encodePrettily(additionStatusToReturnToUser))
         } catch (e: IllegalArgumentException) {
             ctx.response()
                 .setStatusCode(400)
