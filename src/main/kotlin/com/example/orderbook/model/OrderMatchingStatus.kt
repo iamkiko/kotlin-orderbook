@@ -1,3 +1,5 @@
 package com.example.orderbook.model
 
-data class OrderMatchingStatus(val isOrderMatched: Boolean, val totalMatchedQuantity: Double)
+import java.math.BigDecimal
+
+data class OrderMatchingStatus(val isOrderMatched: Boolean, val totalMatchedQuantity: BigDecimal)

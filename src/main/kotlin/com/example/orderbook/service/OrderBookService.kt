@@ -3,6 +3,7 @@ package com.example.orderbook.service
 import com.example.orderbook.api.dto.OrderBookDTO
 import com.example.orderbook.api.dto.OrderDTO
 import com.example.orderbook.model.*
+import java.math.BigDecimal
 import kotlin.math.min
 
 class OrderBookService(private val orderBook: OrderBook) {
@@ -29,9 +30,10 @@ class OrderBookService(private val orderBook: OrderBook) {
 
         val matchResult = matchOrders()
 
-        val isOrderPartiallyFilled =
-            matchResult.totalMatchedQuantity > 0 && matchResult.totalMatchedQuantity < originalQuantity
-        val isOrderFullyFilled = matchResult.totalMatchedQuantity >= originalQuantity
+        val isOrderPartiallyFilled = matchResult.totalMatchedQuantity > BigDecimal.ZERO &&
+                matchResult.totalMatchedQuantity < originalOrder.quantity
+        val isOrderFullyFilled = matchResult.totalMatchedQuantity >= originalOrder.quantity
+
 
         val message = when {
             isOrderFullyFilled -> "Order fully filled."
@@ -71,25 +73,26 @@ class OrderBookService(private val orderBook: OrderBook) {
 
     fun matchOrders(): OrderMatchingStatus {
         var isOrderMatched = false
-        var totalMatchedQuantity = 0.0
+        var totalMatchedQuantity = BigDecimal.ZERO
 
         while (true) {
-            val topBid = orderBook.bids.peek() // retrieve the top most item in this stack i.e. top order
+            val topBid = orderBook.bids.peek() // retrieve the top most item in this stack i.e. top order in book
             val topAsk = orderBook.asks.peek()
 
             // if price has spread, then don't match or if asks/bids don't exist
             if (topBid == null || topAsk == null || topBid.price < topAsk.price) break
 
-            val tradeQuantity = min(topBid.quantity, topAsk.quantity)
-            topBid.quantity -= tradeQuantity
-            topAsk.quantity -= tradeQuantity
+            val tradeQuantity = topBid.quantity.min(topAsk.quantity)
+            topBid.quantity = topBid.quantity.subtract(tradeQuantity)
+            topAsk.quantity = topAsk.quantity.subtract(tradeQuantity)
+
             totalMatchedQuantity += tradeQuantity
 
-            if (topBid.quantity <= 0.0) {
+            if (topBid.quantity <= BigDecimal.ZERO) {
                 orderBook.bids.poll() // order has been fulfilled, remove from book
             }
 
-            if (topAsk.quantity <= 0.0) {
+            if (topAsk.quantity <= BigDecimal.ZERO) {
                 orderBook.asks.poll() // order has been fulfilled, remove from book
             }
 
@@ -103,7 +106,7 @@ class OrderBookService(private val orderBook: OrderBook) {
     }
 
     private fun isValidOrder(order: Order): Boolean {
-        return order.quantity > 0 && order.price > 0 && order.currencyPair == "BTCUSDC"
+        return order.quantity > BigDecimal.ZERO && order.price > BigDecimal.ZERO && order.currencyPair == "BTCUSDC"
     }
 
     fun getOrderBookDTO(): OrderBookDTO {

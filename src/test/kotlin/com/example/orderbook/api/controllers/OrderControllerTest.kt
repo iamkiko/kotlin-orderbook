@@ -14,6 +14,7 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
+import java.math.BigDecimal
 import kotlin.test.assertEquals
 
 
@@ -120,9 +121,9 @@ class OrderControllerTest {
         val webClient = WebClient.create(vertx)
         // given ... an incomplete sell order
         val invalidOrderDTO = JsonObject()
-            .put("side", "SIDE")
-            .put("quantity", 29.9)
-            .put("currencyPair", "BTCUSDC")
+            .put("side", "invalid_side")
+            .put("quantity", BigDecimal("29.9"))
+            .put("currencyPair", "invalid_currency_pair")
         val request = webClient.post(8085, "localhost", "/api/orders/limit")
             .putHeader("content-type", "application/json")
 
