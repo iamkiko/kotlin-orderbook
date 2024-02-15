@@ -5,6 +5,7 @@ import com.example.orderbook.model.Order
 import com.example.orderbook.model.OrderSide
 import com.example.orderbook.service.OrderBookService
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.databind.exc.MismatchedInputException
 import io.vertx.core.Vertx
 import io.vertx.core.json.Json
 import io.vertx.ext.web.Router
@@ -49,6 +50,11 @@ class OrderController(vertx: Vertx, private val orderBookService: OrderBookServi
                 .setStatusCode(400)
                 .putHeader("Content-Type", "application/json")
                 .end(Json.encodePrettily(mapOf("error" to e.message)))
+        } catch (e: MismatchedInputException) {
+            ctx.response()
+                .setStatusCode(400)
+                .putHeader("Content-Type", "application/json")
+                .end(Json.encodePrettily(mapOf("error" to "One of the fields is missing: 'side', 'price', 'quantity' or 'currencyPair'")))
         } catch (e: InternalError) {
             ctx.response()
                 .setStatusCode(500)

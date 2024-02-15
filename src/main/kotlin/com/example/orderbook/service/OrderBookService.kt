@@ -4,7 +4,6 @@ import com.example.orderbook.api.dto.OrderBookDTO
 import com.example.orderbook.api.dto.OrderDTO
 import com.example.orderbook.model.*
 import java.math.BigDecimal
-import kotlin.math.min
 
 class OrderBookService(private val orderBook: OrderBook) {
 
