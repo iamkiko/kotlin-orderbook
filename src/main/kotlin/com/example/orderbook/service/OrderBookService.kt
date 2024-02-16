@@ -2,8 +2,11 @@ package com.example.orderbook.service
 
 import com.example.orderbook.api.dto.OrderBookDTO
 import com.example.orderbook.api.dto.OrderDTO
+import com.example.orderbook.api.dto.OrderSummaryDTO
 import com.example.orderbook.model.*
 import java.math.BigDecimal
+import java.time.Instant
+import java.util.*
 
 class OrderBookService(private val orderBook: OrderBook) {
 
@@ -17,14 +20,21 @@ class OrderBookService(private val orderBook: OrderBook) {
             )
         }
 
-        val originalQuantity = order.quantity
-        val originalOrder =
-            order.copy(quantity = originalQuantity) // we make a copy to accurately return the status to the user
-
-        when (order.side) {
-            OrderSide.BUY -> orderBook.bids.offer(originalOrder)
-            OrderSide.SELL -> orderBook.asks.offer(originalOrder)
+        val orderMap = if (order.side == OrderSide.BUY) {
+            orderBook.bids
+        } else {
+            orderBook.asks
         }
+
+        // aggregate the orders by price level
+        // TODO(): rewrite this
+        orderMap[order.price] = orderMap.getOrDefault(order.price, TreeMap()).apply {
+            this[order.timestamp] = order
+        }
+
+        val originalOrder =
+            order.copy(quantity = order.quantity) // we make a copy to accurately return the status to the user
+
         orderBook.updateLastUpdated()
 
         val matchResult = matchOrders()
@@ -34,17 +44,10 @@ class OrderBookService(private val orderBook: OrderBook) {
         val isOrderFullyFilled = matchResult.totalMatchedQuantity >= originalOrder.quantity
 
 
-        val message = when {
-            isOrderFullyFilled -> "Order fully filled."
-            isOrderPartiallyFilled -> "Order partially filled."
-            else -> "Order added to book, no immediate match found, pending fulfillment."
-        }
-
         val orderDetailsQuantity = if (isOrderPartiallyFilled) {
             matchResult.totalMatchedQuantity
-        }
-         else {
-             originalQuantity
+        } else {
+            originalOrder.quantity
         }
 
         val orderDetails = OrderDTO(
@@ -55,9 +58,15 @@ class OrderBookService(private val orderBook: OrderBook) {
         )
 
         val remainingQuantity = if (isOrderPartiallyFilled || isOrderFullyFilled) {
-            originalQuantity - matchResult.totalMatchedQuantity
+            originalOrder.quantity - matchResult.totalMatchedQuantity
         } else {
-            originalQuantity
+            originalOrder.quantity // preserve original quantity for status message
+        }
+
+        val message = when {
+            isOrderFullyFilled -> "Order fully filled."
+            isOrderPartiallyFilled -> "Order partially filled."
+            else -> "Order added to book, no immediate match found, pending fulfillment."
         }
 
         return OrderAdditionStatus(
@@ -75,27 +84,27 @@ class OrderBookService(private val orderBook: OrderBook) {
         var totalMatchedQuantity = BigDecimal.ZERO
 
         while (true) {
-            val topBid = orderBook.bids.peek() // retrieve the top most item in this stack i.e. top order in book
-            val topAsk = orderBook.asks.peek()
+            // exit early if no bids on either side i.e. no matchmaking can occur
+            if (orderBook.bids.isEmpty() || orderBook.asks.isEmpty()) break
+
+            // retrieve the top most item in this stack i.e. top order in book
+            val bestBid = orderBook.bids.lastEntry()
+            val bestAsk = orderBook.asks.firstEntry()
 
             // if price has spread, then don't match or if asks/bids don't exist
-            if (topBid == null || topAsk == null || topBid.price < topAsk.price) break
+            if (bestBid.key < bestAsk.key) break
 
-            val tradeQuantity = topBid.quantity.min(topAsk.quantity)
-            topBid.quantity = topBid.quantity.subtract(tradeQuantity)
-            topAsk.quantity = topAsk.quantity.subtract(tradeQuantity)
+            val bidOrderEntry = bestBid.value.firstEntry()
+            val askOrderEntry = bestAsk.value.firstEntry()
 
-            totalMatchedQuantity += tradeQuantity
-
-            if (topBid.quantity <= BigDecimal.ZERO) {
-                orderBook.bids.poll() // order has been fulfilled, remove from book
-            }
-
-            if (topAsk.quantity <= BigDecimal.ZERO) {
-                orderBook.asks.poll() // order has been fulfilled, remove from book
-            }
-
+            // figure out the overlap between asks/bids based on the smaller amount so it can match
+            val matchQuantity = bidOrderEntry.value.quantity.min(askOrderEntry.value.quantity)
             isOrderMatched = true
+            totalMatchedQuantity += matchQuantity
+
+
+            updateOrderQuantityAfterMatch(orderBook.bids, bestBid.key, bidOrderEntry.key, matchQuantity)
+            updateOrderQuantityAfterMatch(orderBook.asks, bestAsk.key, askOrderEntry.key, matchQuantity)
 
             // TODO(): will need to record this trade to be able to add it to the trade history
             orderBook.updateLastUpdated()
@@ -108,40 +117,54 @@ class OrderBookService(private val orderBook: OrderBook) {
         return order.quantity > BigDecimal.ZERO && order.price > BigDecimal.ZERO && order.currencyPair == "BTCUSDC"
     }
 
-    fun getOrderBookDTO(): OrderBookDTO {
-        // converting the PriorityQueue to a list for DTO and API consumption
-        val askList = orderBook.asks.map { order ->
-            OrderDTO(
-                side = order.side.toString(),
-                quantity = order.quantity,
-                price = order.price,
-                currencyPair = order.currencyPair
-            )
-        }.toList()
+    private fun updateOrderQuantityAfterMatch(
+        orderMap: TreeMap<BigDecimal, TreeMap<Instant, Order>>,
+        priceLevel: BigDecimal,
+        orderTime: Instant,
+        matchQuantity: BigDecimal
+    ) {
+        val ordersAtPrice = orderMap[priceLevel] ?: return
+        val order = ordersAtPrice[orderTime] ?: return
 
-        val bidList = orderBook.bids.map { order ->
-            OrderDTO(
-                side = order.side.toString(),
-                quantity = order.quantity,
-                price = order.price,
-                currencyPair = order.currencyPair
-            )
-        }.toList()
+        val newQuantity = order.quantity - matchQuantity
+        if (newQuantity <= BigDecimal.ZERO) {
+            ordersAtPrice.remove(orderTime)
+            if (ordersAtPrice.isEmpty()) {
+                orderMap.remove(priceLevel)
+            }
+        } else {
+            ordersAtPrice[orderTime] = order.copy(quantity = newQuantity)
+        }
+    }
+
+    fun getOrderBookDTO(): OrderBookDTO {
+        val asks = aggregateOrders(orderBook.asks, OrderSide.SELL)
+        val bids = aggregateOrders(orderBook.bids, OrderSide.BUY)
 
         return OrderBookDTO(
-            asks = askList,
-            bids = bidList,
+            asks = asks,
+            bids = bids,
             lastUpdated = orderBook.lastUpdated.toString(),
             tradeSequenceNumber = orderBook.tradeSequenceNumber
         )
     }
 
-    private fun Order.toDTO() = OrderDTO(
-        side = this.side.toString(),
-        quantity = this.quantity,
-        price = this.price,
-        currencyPair = this.currencyPair
-    )
+    private fun aggregateOrders(orders: TreeMap<BigDecimal, TreeMap<Instant, Order>>, side: OrderSide): List<OrderSummaryDTO> {
+        return orders.map { entry ->
+            val priceLevel = entry.key
+            val ordersAtPrice = entry.value
+            val totalQuantity = ordersAtPrice.values.sumOf { it.quantity }
+            val orderCount = ordersAtPrice.size
+
+            OrderSummaryDTO(
+                price = priceLevel,
+                quantity = totalQuantity,
+                orderCount = orderCount,
+                side = side.toString(),
+                currencyPair = ordersAtPrice.values.first().currencyPair // would need to update this to accommodate other currency pairs
+            )
+        }
+    }
 
     // TODO() trade history, store in data structure when trade is successful
 

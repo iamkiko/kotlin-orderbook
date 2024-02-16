@@ -18,7 +18,9 @@ import java.util.*
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class OrderBookServiceTest {
 
-    private val errorMessage = "Invalid order details. Please ensure quantity and price are > 0 and that you've submitted a correct currency pair."
+    private val errorMessage =
+        "Invalid order details. Please ensure quantity and price are > 0 and that you've submitted a correct currency pair."
+
     private fun invalidOrdersList() = listOf(
         Arguments.of(Order(OrderSide.BUY, BigDecimal("-1"), BigDecimal("10000"), "BTCUSDC"), errorMessage),
         Arguments.of(Order(OrderSide.SELL, BigDecimal("0"), BigDecimal("15000"), "BTCUSDC"), errorMessage),
@@ -33,9 +35,9 @@ class OrderBookServiceTest {
     @BeforeEach
     fun setUp() {
         orderBook = OrderBook(
-            PriorityQueue(compareBy { it.price }),
-            PriorityQueue(compareByDescending { it.price }),
-            Instant.parse("2024-02-13T00:00:00.000Z"),
+            TreeMap<BigDecimal, TreeMap<Instant, Order>>(reverseOrder()),
+            TreeMap<BigDecimal, TreeMap<Instant, Order>>(),
+            Instant.parse ("2024-02-13T00:00:00.000Z"),
             0
         )
         orderBookService = OrderBookService(orderBook)
@@ -44,23 +46,27 @@ class OrderBookServiceTest {
     @Test
     fun `should return current state of the order book when requested`() {
         // given ... an order book exists with valid orders
-        val buyOrder = Order(OrderSide.BUY, BigDecimal("0.5"), BigDecimal("49370.0"), "BTCUSDC")
-        val sellOrder = Order(OrderSide.SELL, BigDecimal("0.7"), BigDecimal("49475.0"), "BTCUSDC")
+        val buyOrder = Order(OrderSide.BUY, BigDecimal("0.5"), BigDecimal("49370.0"), "BTCUSDC", Instant.now())
+        val sellOrder = Order(OrderSide.SELL, BigDecimal("0.7"), BigDecimal("49475.0"), "BTCUSDC", Instant.now())
         orderBookService.addOrder(buyOrder)
         orderBookService.addOrder(sellOrder)
 
         // when ... we call the order book to retrieve it
         orderBookService.matchOrders()
+        val orderBookSummary = orderBookService.getOrderBookDTO()
+
+
 
 
         // then ... it should return the order book with the current orders
-        assertEquals(1, orderBook.bids.size)
-        assertEquals(1, orderBook.asks.size)
-        assertEquals(OrderSide.BUY, orderBook.bids.first().side)
-        assertEquals(BigDecimal("0.5"), orderBook.bids.first().quantity)
-        assertEquals(BigDecimal("49370.0"), orderBook.bids.first().price)
-        assertEquals(BigDecimal("0.7"), orderBook.asks.first().quantity)
-        assertEquals(BigDecimal("49475.0"), orderBook.asks.first().price)
+        assertEquals(1, orderBookSummary.bids.size)
+        assertEquals(1, orderBookSummary.asks.size)
+        assertEquals(OrderSide.BUY, enumValueOf<OrderSide>(orderBookSummary.bids.first().side))
+        assertEquals(OrderSide.SELL, enumValueOf<OrderSide>(orderBookSummary.asks.first().side))
+        assertEquals(BigDecimal("0.5"), orderBookSummary.bids.first().quantity)
+        assertEquals(BigDecimal("49370.0"), orderBookSummary.bids.first().price)
+        assertEquals(BigDecimal("0.7"), orderBookSummary.asks.first().quantity)
+        assertEquals(BigDecimal("49475.0"), orderBookSummary.asks.first().price)
     }
 
     @Test
@@ -100,12 +106,13 @@ class OrderBookServiceTest {
 
         // when ... we attempt to match the orders
         orderBookService.matchOrders()
+        val orderBookSummary = orderBookService.getOrderBookDTO()
 
         // then ... the order book remains unchanged as the buys and sells aren't matched
         assertFalse(orderBook.bids.isEmpty())
         assertFalse(orderBook.asks.isEmpty())
-        assertEquals(BigDecimal("37999.0"), orderBook.bids.first().price)
-        assertEquals(BigDecimal("43999.0"), orderBook.asks.first().price)
+        assertEquals(BigDecimal("37999.0"), orderBookSummary.bids.first().price)
+        assertEquals(BigDecimal("43999.0"), orderBookSummary.asks.first().price)
     }
 
     @Test
@@ -119,14 +126,15 @@ class OrderBookServiceTest {
 
         // when ... we  match the orders
         orderBookService.matchOrders()
+        val orderBookSummary = orderBookService.getOrderBookDTO()
 
         // then ... we can confirm that the sell order is no longer on the order book but the buy order has only been partially filled
         assertTrue(orderBook.asks.isEmpty())
-        assertEquals(BigDecimal("0.5"), orderBook.bids.first().quantity)
+        assertEquals(BigDecimal("0.5"), orderBookSummary.bids.first().quantity)
     }
 
     @Test
-    fun `should add multiple orders and ensure correct sorting` () {
+    fun `should add multiple orders and ensure correct sorting`() {
         // given ... buy and sell orders added in a non-sorted order
         val middlePriceBuyOrder = Order(OrderSide.BUY, BigDecimal("0.5"), BigDecimal("29000.0"), "BTCUSDC")
         val highestPriceBuyOrder = Order(OrderSide.BUY, BigDecimal("1.2"), BigDecimal("35000.0"), "BTCUSDC")
@@ -144,16 +152,18 @@ class OrderBookServiceTest {
         orderBookService.addOrder(highestPriceSellOrder)
 
         // then ... we can verify the entire order of the buy and sell queues
-        val expectedBuyOrder = listOf(highestPriceBuyOrder, middlePriceBuyOrder, lowestPriceBuyOrder)
-        val expectedSellOrder = listOf(lowestPriceSellOrder, middlePriceSellOrder, highestPriceSellOrder)
-        assertEquals(expectedBuyOrder, ArrayList(orderBook.bids))
-        assertEquals(expectedSellOrder, ArrayList(orderBook.asks))
+        val buyOrderPrices = orderBook.bids.keys.toList()
+        val sellOrderPrices = orderBook.asks.keys.toList()
+
+        val expectedBuyOrderPrices = listOf(highestPriceBuyOrder.price, middlePriceBuyOrder.price, lowestPriceBuyOrder.price)
+        val expectedSellOrderPrices = listOf(lowestPriceSellOrder.price, middlePriceSellOrder.price, highestPriceSellOrder.price)
+        assertEquals(expectedBuyOrderPrices, buyOrderPrices)
+        assertEquals(expectedSellOrderPrices, sellOrderPrices)
         // and ... we can confirm that the highest buy order and the lowest sell order are the first orders around the spread
-        assertEquals(highestPriceBuyOrder, orderBook.bids.peek())
-        assertEquals(lowestPriceSellOrder, orderBook.asks.peek())
+        assertEquals(highestPriceBuyOrder.price, orderBook.bids.firstKey())
+        assertEquals(lowestPriceSellOrder.price, orderBook.asks.firstKey())
     }
 
-    // TODO() add the logic for price-time to get this to pass
     @Test
     fun `should fill orders fully and partially up to a certain price based on price priority`() {
         // given ... buy orders which are >= current sell orders
@@ -177,6 +187,8 @@ class OrderBookServiceTest {
         // and ...no further buy orders exist
         assertEquals(0, bids.size)
     }
+
+    // TODO(): Add time priority test
 
     @ParameterizedTest
     @MethodSource("invalidOrdersList")
