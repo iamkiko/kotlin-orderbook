@@ -85,7 +85,7 @@ class OrderBookService(private val orderBook: OrderBook, private val tradeServic
     fun matchOrders(): OrderMatchingStatus {
         var isOrderMatched = false
         var totalMatchedQuantity = BigDecimal.ZERO
-        var fulfiledTradePrice = BigDecimal.ZERO
+        var fulfilledTradePrice = BigDecimal.ZERO
 
         // TODO(): Can this ever not break and be a bug?
         while (true) {
@@ -105,13 +105,16 @@ class OrderBookService(private val orderBook: OrderBook, private val tradeServic
             // figure out the overlap between asks/bids based on the smaller amount so it can match
             val matchQuantity = bidOrderEntry.value.quantity.min(askOrderEntry.value.quantity)
 
+            // ensure the best price is always used for the trade
+            fulfilledTradePrice = if (bestBid.key >= bestAsk.key) bestAsk.key else bestBid.key
+
             val takerSide = determineTakerSide(bestBid.value, bestAsk.value)
 
             isOrderMatched = true
             totalMatchedQuantity += matchQuantity
 
-            fulfiledTradePrice = if (takerSide == OrderSide.BUY) bestBid.key else bestAsk.key // determine which side initiated the order to get price.
-            tradeService.recordTrade(fulfiledTradePrice, matchQuantity, bidOrderEntry.value.currencyPair, takerSide)
+
+            tradeService.recordTrade(fulfilledTradePrice, matchQuantity, bidOrderEntry.value.currencyPair, takerSide)
 
             updateOrderQuantityAfterMatch(orderBook.bids, bestBid.key, bidOrderEntry.key, matchQuantity)
             updateOrderQuantityAfterMatch(orderBook.asks, bestAsk.key, askOrderEntry.key, matchQuantity)
@@ -119,7 +122,7 @@ class OrderBookService(private val orderBook: OrderBook, private val tradeServic
             orderBook.updateLastUpdated()
         }
 
-        return OrderMatchingStatus(isOrderMatched, totalMatchedQuantity, fulfiledTradePrice)
+        return OrderMatchingStatus(isOrderMatched, totalMatchedQuantity, fulfilledTradePrice)
     }
 
     private fun isValidOrder(order: Order): Boolean {

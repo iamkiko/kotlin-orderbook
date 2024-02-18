@@ -31,6 +31,7 @@ class OrderBookServiceTest {
 
     private lateinit var orderBookService: OrderBookService
     private lateinit var orderBook: OrderBook
+    private lateinit var tradeService: TradeService
 
     @BeforeEach
     fun setUp() {
@@ -40,7 +41,7 @@ class OrderBookServiceTest {
             Instant.parse ("2024-02-13T00:00:00.000Z"),
             0
         )
-        val tradeService = TradeService()
+        tradeService = TradeService()
         orderBookService = OrderBookService(orderBook, tradeService)
     }
 
@@ -189,7 +190,23 @@ class OrderBookServiceTest {
         assertEquals(0, bids.size)
     }
 
-    // TODO(): Add time priority test
+    @Test
+    fun `should execute trades at best available price`() {
+        // given ... matching buy and sell orders with different prices
+        val highPriceBuyOrder = Order(OrderSide.BUY, BigDecimal("1.0"), BigDecimal("45000.0"), "BTCUSDC")
+        val lowPriceSellOrder = Order(OrderSide.SELL, BigDecimal("1.0"), BigDecimal("44000.0"), "BTCUSDC")
+
+        // when ... we add orders to the order book and match them
+        orderBookService.addOrder(highPriceBuyOrder)
+        orderBookService.addOrder(lowPriceSellOrder)
+
+        val tradesAfterMatching = tradeService.getTradeDTOs()
+        val lastTrade = tradesAfterMatching.last()
+
+        // then ... the buy order is executed at the lowest available price
+        assertNotNull(lastTrade)
+        assertEquals(BigDecimal("44000.0"), lastTrade.price)
+    }
 
     @ParameterizedTest
     @MethodSource("invalidOrdersList")

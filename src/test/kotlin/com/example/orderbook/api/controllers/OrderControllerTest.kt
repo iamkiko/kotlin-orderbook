@@ -1,5 +1,6 @@
 package com.example.orderbook.api.controllers
 
+import com.example.orderbook.api.dto.OrderDTO
 import com.example.orderbook.model.OrderBook
 import com.example.orderbook.model.OrderSide
 import com.example.orderbook.service.OrderBookService
@@ -9,6 +10,7 @@ import io.vertx.core.Vertx
 import io.vertx.core.json.JsonObject
 import io.vertx.ext.web.Router
 import io.vertx.ext.web.client.WebClient
+import io.vertx.ext.web.handler.BodyHandler
 import io.vertx.junit5.VertxExtension
 import io.vertx.junit5.VertxTestContext
 import org.junit.jupiter.api.Assertions.assertNotNull
@@ -33,10 +35,11 @@ class OrderControllerTest {
         this.vertx = vertx
         this.tradeService = TradeService()
         this.orderBookService = OrderBookService(OrderBook(), tradeService)
-        val mapper = jacksonObjectMapper();
+        val mapper = jacksonObjectMapper()
         this.orderController = OrderController(vertx, orderBookService, mapper)
         val router = this.orderController.router
 
+        router.route().handler(BodyHandler.create())
         orderController.setupRoutes()
 
         vertx.createHttpServer()
@@ -51,17 +54,13 @@ class OrderControllerTest {
         // given ... a valid buy order
         val orderDTOJson = JsonObject()
             .put("side", "BUY")
-            .put("quantity", 0.9)
-            .put("price", 47777.0)
+            .put("quantity", 0.9000)
+            .put("price", 47777.0000)
             .put("currencyPair", "BTCUSDC")
         val request = webClient.post(8888, "localhost", "/api/orders/limit")
-            .putHeader("content-type", "application/json")
-
-        val y = orderDTOJson
+            .putHeader("Content-Type", "application/json")
         // when ... sent to our controller
         val responseFuture = request.sendJsonObject(orderDTOJson)
-
-        val x = responseFuture
 
         // then ... we can assert that it was successful based on API response code (created)
         responseFuture.onComplete(vertxTestContext.succeeding { response ->
@@ -84,7 +83,7 @@ class OrderControllerTest {
             .put("price", 0.0)
             .put("currencyPair", "BTCUSDC")
         val request = webClient.post(8888, "localhost", "/api/orders/limit")
-            .putHeader("content-type", "application/json")
+            .putHeader("Content-Type", "application/json")
 
         // when ... sent to our controller
         val responseFuture = request.sendJsonObject(invalidOrderDTOJson)
@@ -111,7 +110,7 @@ class OrderControllerTest {
             .put("quantity", BigDecimal("29.9"))
             .put("currencyPair", "invalid_currency_pair")
         val request = webClient.post(8888, "localhost", "/api/orders/limit")
-            .putHeader("content-type", "application/json")
+            .putHeader("Content-Type", "application/json")
 
         // when ... sent to our controller
         val responseFuture = request.sendJsonObject(invalidOrderDTOJson)
