@@ -105,11 +105,7 @@ class OrderBookService(private val orderBook: OrderBook, private val tradeServic
             // figure out the overlap between asks/bids based on the smaller amount so it can match
             val matchQuantity = bidOrderEntry.value.quantity.min(askOrderEntry.value.quantity)
 
-            val takerSide = if (bidOrderEntry.value.timestamp.isBefore(askOrderEntry.value.timestamp)) {
-                OrderSide.BUY
-            } else {
-                OrderSide.SELL
-            }
+            val takerSide = determineTakerSide(bestBid.value, bestAsk.value)
 
             isOrderMatched = true
             totalMatchedQuantity += matchQuantity
@@ -177,6 +173,13 @@ class OrderBookService(private val orderBook: OrderBook, private val tradeServic
                 currencyPair = ordersAtPrice.values.first().currencyPair // would need to update this to accommodate other currency pairs
             )
         }
+    }
+
+    private fun determineTakerSide(bidOrders: TreeMap<Instant, Order>, askOrders: TreeMap<Instant, Order>): OrderSide {
+        val earliestBidTimestamp = bidOrders.firstKey()
+        val earliestAskTimestamp = askOrders.firstKey()
+
+        return if (earliestBidTimestamp.isBefore(earliestAskTimestamp)) OrderSide.SELL else OrderSide.BUY
     }
 
     // TODO() cancel orders, take in an orderId
