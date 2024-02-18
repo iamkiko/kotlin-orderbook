@@ -1,6 +1,7 @@
 package com.example.orderbook
 
 import com.example.orderbook.api.controllers.OrderController
+import com.example.orderbook.api.controllers.TradeController
 import com.example.orderbook.model.OrderBook
 import com.example.orderbook.service.OrderBookService
 import com.example.orderbook.service.TradeService
@@ -24,8 +25,11 @@ class MainVerticle : AbstractVerticle() {
                 .end("""{"status": "up"}""")
         }
 
-        val tradeService = TradeService()
 
+        // Recent trades
+        val tradeService = TradeService()
+        val tradeController = TradeController(vertx, tradeService, mapper)
+        router.get("/api/recent-trades").handler(tradeController::handleGetTrades)
         // Orderbook
         val orderBookService = OrderBookService(OrderBook(), tradeService)
         val orderController = OrderController(vertx, orderBookService, mapper)
