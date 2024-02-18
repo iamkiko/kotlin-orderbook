@@ -19,16 +19,7 @@ class OrderController(vertx: Vertx, private val orderBookService: OrderBookServi
     }
 
     fun setupRoutes() {
-        router.get("/api/orderbook").handler(this::handleGetOrderBook)
         router.post("/api/orders/limit").handler(this::handleAddLimitOrder)
-    }
-
-    fun handleGetOrderBook(ctx: RoutingContext) {
-        val orderBook = orderBookService.getOrderBookDTO()
-        val json = mapper.writeValueAsString(orderBook)
-        ctx.response()
-            .putHeader("Content-Type", "application/json")
-            .end(json)
     }
 
     fun handleAddLimitOrder(ctx: RoutingContext) {

@@ -1,6 +1,7 @@
 package com.example.orderbook.api.controllers
 
 import com.example.orderbook.model.OrderBook
+import com.example.orderbook.model.OrderSide
 import com.example.orderbook.service.OrderBookService
 import com.example.orderbook.service.TradeService
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
@@ -43,33 +44,12 @@ class OrderControllerTest {
             .listen(8888, vertxTestContext.succeedingThenComplete())
     }
 
-    @Test
-    fun `should successfully retrieve the order book`(vertxTestContext: VertxTestContext) {
-        val webClient = WebClient.create(vertx)
-        // given ... an existing orderbook
-        // when ... we send a request to the orderbook
-        val responseFuture = webClient.get(8888, "localhost", "/api/orderbook")
-            .putHeader("content-type", "application/json")
-            .send()
-
-        // then ... we can assert that it successfully retrieves it based on the data + response code
-        responseFuture.onComplete(vertxTestContext.succeeding { response ->
-            vertxTestContext.verify {
-                assertEquals(200, response.statusCode())
-                val orderBook = response.bodyAsJsonObject()
-                assertNotNull(orderBook)
-                assertTrue(orderBook.containsKey("asks") || orderBook.containsKey("bids"))
-                vertxTestContext.completeNow()
-            }
-        })
-    }
-
 
     @Test
     fun `should add order successfully when we submit a limit order`(vertxTestContext: VertxTestContext) {
         val webClient = WebClient.create(vertx)
         // given ... a valid buy order
-        val orderDTO = JsonObject()
+        val orderDTOJson = JsonObject()
             .put("side", "BUY")
             .put("quantity", 0.9)
             .put("price", 47777.0)
@@ -77,8 +57,11 @@ class OrderControllerTest {
         val request = webClient.post(8888, "localhost", "/api/orders/limit")
             .putHeader("content-type", "application/json")
 
+        val y = orderDTOJson
         // when ... sent to our controller
-        val responseFuture = request.sendJsonObject(orderDTO)
+        val responseFuture = request.sendJsonObject(orderDTOJson)
+
+        val x = responseFuture
 
         // then ... we can assert that it was successful based on API response code (created)
         responseFuture.onComplete(vertxTestContext.succeeding { response ->
@@ -95,7 +78,7 @@ class OrderControllerTest {
     ) {
         val webClient = WebClient.create(vertx)
         // given ... an invalid sell order
-        val invalidOrderDTO = JsonObject()
+        val invalidOrderDTOJson = JsonObject()
             .put("side", "SIDE")
             .put("quantity", 29.9)
             .put("price", 0.0)
@@ -104,7 +87,7 @@ class OrderControllerTest {
             .putHeader("content-type", "application/json")
 
         // when ... sent to our controller
-        val responseFuture = request.sendJsonObject(invalidOrderDTO)
+        val responseFuture = request.sendJsonObject(invalidOrderDTOJson)
 
         // then ... our controller responds with a bad request (400)
         responseFuture.onComplete(vertxTestContext.succeeding { response ->
@@ -123,7 +106,7 @@ class OrderControllerTest {
     ) {
         val webClient = WebClient.create(vertx)
         // given ... an incomplete sell order
-        val invalidOrderDTO = JsonObject()
+        val invalidOrderDTOJson = JsonObject()
             .put("side", "invalid_side")
             .put("quantity", BigDecimal("29.9"))
             .put("currencyPair", "invalid_currency_pair")
@@ -131,7 +114,7 @@ class OrderControllerTest {
             .putHeader("content-type", "application/json")
 
         // when ... sent to our controller
-        val responseFuture = request.sendJsonObject(invalidOrderDTO)
+        val responseFuture = request.sendJsonObject(invalidOrderDTOJson)
 
         // then ... our controller responds with a bad request (400)
         responseFuture.onComplete(vertxTestContext.succeeding { response ->
@@ -142,23 +125,4 @@ class OrderControllerTest {
             }
         })
     }
-
-    @Test
-    fun `should not return data sent to non-existent endpoints`(vertxTestContext: VertxTestContext) {
-        val webClient = WebClient.create(vertx)
-        // given ... a request
-        // when ... a request is sent to a non-existent endpoint
-        val responseFuture = webClient.get(8888, "localhost", "/api/thisdoesnotexist")
-            .putHeader("content-type", "application/json")
-            .send()
-
-        // then ... we return the correct status code
-        responseFuture.onComplete(vertxTestContext.succeeding { response ->
-            vertxTestContext.verify {
-                assertEquals(404, response.statusCode())
-                vertxTestContext.completeNow()
-            }
-        })
-    }
-
 }

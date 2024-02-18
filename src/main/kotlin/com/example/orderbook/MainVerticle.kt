@@ -1,5 +1,6 @@
 package com.example.orderbook
 
+import com.example.orderbook.api.controllers.OrderBookController
 import com.example.orderbook.api.controllers.OrderController
 import com.example.orderbook.api.controllers.TradeController
 import com.example.orderbook.model.OrderBook
@@ -32,9 +33,10 @@ class MainVerticle : AbstractVerticle() {
         router.get("/api/recent-trades").handler(tradeController::handleGetTrades)
         // Orderbook
         val orderBookService = OrderBookService(OrderBook(), tradeService)
-        val orderController = OrderController(vertx, orderBookService, mapper)
-        router.get("/api/orderbook").handler(orderController::handleGetOrderBook)
+        val orderBookController = OrderBookController(vertx, orderBookService, mapper)
+        router.get("/api/orderbook").handler(orderBookController::handleGetOrderBook)
         // Limit order
+        val orderController = OrderController(vertx, orderBookService, mapper)
         router.post("/api/orders/limit").handler(orderController::handleAddLimitOrder)
 
 
