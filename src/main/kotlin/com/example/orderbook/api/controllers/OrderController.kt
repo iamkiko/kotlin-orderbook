@@ -31,6 +31,7 @@ class OrderController(vertx: Vertx, private val orderBookService: OrderBookServi
                 price = orderRequest.price,
                 currencyPair = orderRequest.currencyPair
             )
+            // is this causing an additional order?
             val additionStatusToReturnToUser = orderBookService.addOrder(order)
             ctx.response()
                 .setStatusCode(201)

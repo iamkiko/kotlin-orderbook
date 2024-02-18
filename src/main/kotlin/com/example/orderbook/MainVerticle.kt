@@ -26,17 +26,16 @@ class MainVerticle : AbstractVerticle() {
                 .end("""{"status": "up"}""")
         }
 
-
         // Recent trades
         val tradeService = TradeService()
-        val tradeController = TradeController(vertx, tradeService)
-        router.get("/api/recent-trades").handler(tradeController::handleGetTrades)
-        // Orderbook
         val orderBookService = OrderBookService(OrderBook(), tradeService)
+
+        val tradeController = TradeController(vertx, tradeService)
         val orderBookController = OrderBookController(vertx, orderBookService, mapper)
-        router.get("/api/orderbook").handler(orderBookController::handleGetOrderBook)
-        // Limit order
         val orderController = OrderController(vertx, orderBookService, mapper)
+
+        router.get("/api/orderbook").handler(orderBookController::handleGetOrderBook)
+        router.get("/api/recent-trades").handler(tradeController::handleGetTrades)
         router.post("/api/orders/limit").handler(orderController::handleAddLimitOrder)
 
 
