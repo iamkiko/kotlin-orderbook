@@ -10,7 +10,6 @@ class TradeService {
 
     fun recordTrade(price: BigDecimal, quantity: BigDecimal, currencyPair: String, takerSide: OrderSide) {
         val tradeId = UUID.randomUUID().toString()
-
         val trade = Trade(
             id = tradeId,
             price = price,
@@ -18,9 +17,7 @@ class TradeService {
             currencyPair = currencyPair,
             takerSide = takerSide
         )
-
         TradeRepository.addTrade(trade)
     }
-
     fun getTrades(): List<Trade> = TradeRepository.getTrades()
 }

@@ -2,6 +2,7 @@ package com.example.orderbook.api.controllers
 
 import com.example.orderbook.model.OrderBook
 import com.example.orderbook.service.OrderBookService
+import com.example.orderbook.service.TradeService
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import io.vertx.core.Vertx
 import io.vertx.core.json.JsonObject
@@ -22,13 +23,15 @@ import kotlin.test.assertEquals
 class OrderControllerTest {
     private lateinit var vertx: Vertx
     private lateinit var orderBookService: OrderBookService
+    private lateinit var tradeService: TradeService
     private lateinit var orderController: OrderController
 
 
     @BeforeEach
     fun setup(vertx: Vertx, vertxTestContext: VertxTestContext) {
         this.vertx = vertx
-        this.orderBookService = OrderBookService(OrderBook())
+        this.tradeService = TradeService()
+        this.orderBookService = OrderBookService(OrderBook(), tradeService)
         val mapper = jacksonObjectMapper();
         this.orderController = OrderController(vertx, orderBookService, mapper)
 

@@ -10,4 +10,8 @@ object TradeRepository {
     }
 
     fun getTrades(): List<Trade> = trades.toList()
+
+    fun clearTrades() {
+        trades.clear()
+    }
 }

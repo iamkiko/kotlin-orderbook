@@ -40,7 +40,8 @@ class OrderBookServiceTest {
             Instant.parse ("2024-02-13T00:00:00.000Z"),
             0
         )
-        orderBookService = OrderBookService(orderBook)
+        val tradeService = TradeService()
+        orderBookService = OrderBookService(orderBook, tradeService)
     }
 
     @Test

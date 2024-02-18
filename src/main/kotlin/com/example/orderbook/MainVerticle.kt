@@ -3,6 +3,7 @@ package com.example.orderbook
 import com.example.orderbook.api.controllers.OrderController
 import com.example.orderbook.model.OrderBook
 import com.example.orderbook.service.OrderBookService
+import com.example.orderbook.service.TradeService
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import io.vertx.core.AbstractVerticle
 import io.vertx.core.Promise
@@ -23,8 +24,10 @@ class MainVerticle : AbstractVerticle() {
                 .end("""{"status": "up"}""")
         }
 
+        val tradeService = TradeService()
+
         // Orderbook
-        val orderBookService = OrderBookService(OrderBook())
+        val orderBookService = OrderBookService(OrderBook(), tradeService)
         val orderController = OrderController(vertx, orderBookService, mapper)
         router.get("/api/orderbook").handler(orderController::handleGetOrderBook)
         // Limit order
