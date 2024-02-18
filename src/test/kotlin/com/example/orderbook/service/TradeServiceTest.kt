@@ -28,17 +28,16 @@ class TradeServiceTest {
         // when ... we attempt to record and store it
         tradeService.recordTrade(price, quantity, currencyPair, takerSide)
 
-        val trades = tradeService.getTrades()
+        val trades = tradeService.getTradeDTOs()
 
         // then ... we should be able to correctly retrieve it
         assertEquals(1, trades.size)
 
-        with(trades.first()) {
-            assertEquals(price, this.price)
-            assertEquals(quantity, this.quantity)
-            assertEquals(currencyPair, this.currencyPair)
-            assertEquals(takerSide, this.takerSide)
-        }
+        val trade = trades.first()
+        assertEquals(price, trade.price)
+        assertEquals(quantity, trade.quantity)
+        assertEquals(currencyPair, trade.currencyPair)
+        assertEquals(takerSide.toString(), trade.takerSide)
     }
 
     @Test
@@ -46,44 +45,34 @@ class TradeServiceTest {
         // given ... multiple trades have occurred
         tradeService.recordTrade(BigDecimal("39000"), BigDecimal("1"), "BTCUSDC", OrderSide.BUY)
         tradeService.recordTrade(BigDecimal("38000"), BigDecimal("2"), "BTCUSDC", OrderSide.BUY)
-        tradeService.recordTrade(BigDecimal("39000"), BigDecimal("1"), "BTCUSDC", OrderSide.SELL)
+        tradeService.recordTrade(BigDecimal("22000"), BigDecimal("3"), "BTCUSDC", OrderSide.SELL)
 
         // when ... we attempt to retrieve them
-        val trades = tradeService.getTrades()
+        val trades = tradeService.getTradeDTOs()
 
         // then ... we can confirm they are correct
         assertEquals(3, trades.size)
-        with(trades[0]) {
-            assertEquals(BigDecimal("39000"), this.price)
-            assertEquals(BigDecimal("1"), this.quantity)
-            assertEquals("BTCUSDC", this.currencyPair)
-            assertEquals(OrderSide.BUY, this.takerSide)
-        }
+        assertEquals(BigDecimal("39000"), trades[0].price)
+        assertEquals(BigDecimal("1"),  trades[0].quantity)
+        assertEquals("BUY",  trades[0].takerSide)
 
-        with(trades[1]) {
-            assertEquals(BigDecimal("38000"), this.price)
-            assertEquals(BigDecimal("2"), this.quantity)
-            assertEquals("BTCUSDC", this.currencyPair)
-            assertEquals(OrderSide.BUY, this.takerSide)
-        }
+        assertEquals(BigDecimal("38000"), trades[1].price)
+        assertEquals(BigDecimal("2"), trades[1].quantity)
 
-        with(trades[2]) {
-            assertEquals(BigDecimal("39000"), this.price)
-            assertEquals(BigDecimal("1"), this.quantity)
-            assertEquals("BTCUSDC", this.currencyPair)
-            assertEquals(OrderSide.SELL, this.takerSide)
-        }
+        assertEquals(BigDecimal("22000"), trades[2].price)
+        assertEquals(BigDecimal("3"), trades[2].quantity)
+        assertEquals("SELL", trades[2].takerSide)
     }
 
     @Test
     fun `should retrieve trades in the order they were added`() {
         // given ... multiple trades with successive timestamps
         tradeService.recordTrade(BigDecimal("10000"), BigDecimal("1"), "BTCUSDC", OrderSide.BUY)
-        Thread.sleep(10)
+        Thread.sleep(100)
         tradeService.recordTrade(BigDecimal("20000"), BigDecimal("2"), "BTCUSDC", OrderSide.SELL)
 
         // when ... we call the service to retrieve them
-        val trades = tradeService.getTrades()
+        val trades = tradeService.getTradeDTOs()
 
         val firstTradeTimestamp = trades[0].timestamp
         val secondTradeTimestamp = trades[1].timestamp
@@ -100,7 +89,7 @@ class TradeServiceTest {
 
         // when ... we call the service to retrieve them
 
-        val trades = tradeService.getTrades()
+        val trades = tradeService.getTradeDTOs()
 
         val firstTradeId = trades[0].id
         val secondTradeId = trades[1].id
@@ -108,4 +97,23 @@ class TradeServiceTest {
         // then ... we can confirm that they have unique ids
         assertNotEquals(firstTradeId, secondTradeId)
     }
+
+    @Test
+    fun `should correctly determine taker side based on order initiation`() {
+        // given ... 2 fulfilled orders
+        val sellPrice = BigDecimal("40000")
+        val buyPrice = BigDecimal("41000")
+        val quantity = BigDecimal("1")
+        val currencyPair = "BTCUSDC"
+
+        // when ... we record them
+        tradeService.recordTrade(sellPrice, quantity, currencyPair, OrderSide.SELL)
+        tradeService.recordTrade(buyPrice, quantity, currencyPair, OrderSide.BUY)
+
+        val trades = tradeService.getTradeDTOs()
+        assertEquals(2, trades.size)
+        // then ... we can determine that the taker side was the order that accepted the existing order
+        assertEquals(OrderSide.BUY.toString(), trades.last().takerSide)
+    }
+
 }

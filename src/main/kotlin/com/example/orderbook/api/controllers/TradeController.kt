@@ -10,7 +10,7 @@ import io.vertx.ext.web.Router
 import io.vertx.ext.web.RoutingContext
 
 class TradeController(vertx: Vertx, private val tradeService: TradeService) {
-    private val router: Router = Router.router(vertx)
+    val router: Router = Router.router(vertx)
     private val mapper: ObjectMapper = ObjectMapper().apply {
         registerModule(JavaTimeModule())
         disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)

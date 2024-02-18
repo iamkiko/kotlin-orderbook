@@ -12,7 +12,7 @@ import io.vertx.ext.web.Router
 import io.vertx.ext.web.RoutingContext
 
 class OrderController(vertx: Vertx, private val orderBookService: OrderBookService, private val mapper: ObjectMapper) {
-    private val router: Router = Router.router(vertx)
+    val router: Router = Router.router(vertx)
 
     init {
         setupRoutes()

@@ -28,14 +28,14 @@ class OrderControllerTest {
 
 
     @BeforeEach
-    fun setup(vertx: Vertx, vertxTestContext: VertxTestContext) {
+    fun setUp(vertx: Vertx, vertxTestContext: VertxTestContext) {
         this.vertx = vertx
         this.tradeService = TradeService()
         this.orderBookService = OrderBookService(OrderBook(), tradeService)
         val mapper = jacksonObjectMapper();
         this.orderController = OrderController(vertx, orderBookService, mapper)
+        val router = this.orderController.router
 
-        val router = Router.router(vertx)
         orderController.setupRoutes()
 
         vertx.createHttpServer()
@@ -48,7 +48,7 @@ class OrderControllerTest {
         val webClient = WebClient.create(vertx)
         // given ... an existing orderbook
         // when ... we send a request to the orderbook
-        val responseFuture = webClient.get(8085, "localhost", "/api/orderbook")
+        val responseFuture = webClient.get(8888, "localhost", "/api/orderbook")
             .putHeader("content-type", "application/json")
             .send()
 
@@ -74,7 +74,7 @@ class OrderControllerTest {
             .put("quantity", 0.9)
             .put("price", 47777.0)
             .put("currencyPair", "BTCUSDC")
-        val request = webClient.post(8085, "localhost", "/api/orders/limit")
+        val request = webClient.post(8888, "localhost", "/api/orders/limit")
             .putHeader("content-type", "application/json")
 
         // when ... sent to our controller
@@ -100,7 +100,7 @@ class OrderControllerTest {
             .put("quantity", 29.9)
             .put("price", 0.0)
             .put("currencyPair", "BTCUSDC")
-        val request = webClient.post(8085, "localhost", "/api/orders/limit")
+        val request = webClient.post(8888, "localhost", "/api/orders/limit")
             .putHeader("content-type", "application/json")
 
         // when ... sent to our controller
@@ -127,7 +127,7 @@ class OrderControllerTest {
             .put("side", "invalid_side")
             .put("quantity", BigDecimal("29.9"))
             .put("currencyPair", "invalid_currency_pair")
-        val request = webClient.post(8085, "localhost", "/api/orders/limit")
+        val request = webClient.post(8888, "localhost", "/api/orders/limit")
             .putHeader("content-type", "application/json")
 
         // when ... sent to our controller
@@ -148,7 +148,7 @@ class OrderControllerTest {
         val webClient = WebClient.create(vertx)
         // given ... a request
         // when ... a request is sent to a non-existent endpoint
-        val responseFuture = webClient.get(8085, "localhost", "/api/thisdoesnotexist")
+        val responseFuture = webClient.get(8888, "localhost", "/api/thisdoesnotexist")
             .putHeader("content-type", "application/json")
             .send()
 
