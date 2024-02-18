@@ -51,10 +51,12 @@ class OrderBookService(private val orderBook: OrderBook, private val tradeServic
             originalOrder.quantity
         }
 
+        val fulfilledPrice = matchResult.fulfilledPrice
+
         val orderDetails = OrderDTO(
             side = order.side.toString(),
             quantity = orderDetailsQuantity,
-            price = order.price,
+            price = fulfilledPrice,
             currencyPair = order.currencyPair
         )
 
@@ -83,7 +85,7 @@ class OrderBookService(private val orderBook: OrderBook, private val tradeServic
     fun matchOrders(): OrderMatchingStatus {
         var isOrderMatched = false
         var totalMatchedQuantity = BigDecimal.ZERO
-
+        var fulfiledTradePrice = BigDecimal.ZERO
 
         // TODO(): Can this ever not break and be a bug?
         while (true) {
@@ -91,7 +93,7 @@ class OrderBookService(private val orderBook: OrderBook, private val tradeServic
             if (orderBook.bids.isEmpty() || orderBook.asks.isEmpty()) break
 
             // retrieve the top most item in this stack i.e. top order in book
-            val bestBid = orderBook.bids.lastEntry() // TODO(): Put this logic into the OrderBook Model/Domain
+            val bestBid = orderBook.bids.firstEntry() // TODO(): Put this logic into the OrderBook Model/Domain
             val bestAsk = orderBook.asks.firstEntry()
 
             // if price has spread, then don't match or if asks/bids don't exist
@@ -109,13 +111,11 @@ class OrderBookService(private val orderBook: OrderBook, private val tradeServic
                 OrderSide.SELL
             }
 
-            val tradePrice = if (takerSide == OrderSide.BUY) bestBid.key else bestAsk.key // determine which side initiated the order to get price.
-
-            tradeService.recordTrade(tradePrice, matchQuantity, bidOrderEntry.value.currencyPair, takerSide)
-
             isOrderMatched = true
             totalMatchedQuantity += matchQuantity
 
+            fulfiledTradePrice = if (takerSide == OrderSide.BUY) bestBid.key else bestAsk.key // determine which side initiated the order to get price.
+            tradeService.recordTrade(fulfiledTradePrice, matchQuantity, bidOrderEntry.value.currencyPair, takerSide)
 
             updateOrderQuantityAfterMatch(orderBook.bids, bestBid.key, bidOrderEntry.key, matchQuantity)
             updateOrderQuantityAfterMatch(orderBook.asks, bestAsk.key, askOrderEntry.key, matchQuantity)
@@ -123,7 +123,7 @@ class OrderBookService(private val orderBook: OrderBook, private val tradeServic
             orderBook.updateLastUpdated()
         }
 
-        return OrderMatchingStatus(isOrderMatched, totalMatchedQuantity)
+        return OrderMatchingStatus(isOrderMatched, totalMatchedQuantity, fulfiledTradePrice)
     }
 
     private fun isValidOrder(order: Order): Boolean {
