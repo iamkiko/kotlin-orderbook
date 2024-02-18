@@ -15,4 +15,6 @@ data class OrderBook(
         lastUpdated = Instant.now()
         tradeSequenceNumber++
     }
+    //             val bestBid = orderBook.bids.lastEntry() // TODO(): Expose it here so that all services that require such logic can use it
+    //            val bestAsk = orderBook.asks.firstEntry()
 }

@@ -8,7 +8,8 @@ import java.math.BigDecimal
 import java.time.Instant
 import java.util.*
 
-class OrderBookService(private val orderBook: OrderBook) {
+class OrderBookService(private val orderBook: OrderBook, private val tradeService: TradeService) {
+
 
     fun addOrder(order: Order): OrderAdditionStatus {
         // block invalid orders
@@ -83,12 +84,14 @@ class OrderBookService(private val orderBook: OrderBook) {
         var isOrderMatched = false
         var totalMatchedQuantity = BigDecimal.ZERO
 
+
+        // TODO(): Can this ever not break and be a bug?
         while (true) {
             // exit early if no bids on either side i.e. no matchmaking can occur
             if (orderBook.bids.isEmpty() || orderBook.asks.isEmpty()) break
 
             // retrieve the top most item in this stack i.e. top order in book
-            val bestBid = orderBook.bids.lastEntry()
+            val bestBid = orderBook.bids.lastEntry() // TODO(): Put this logic into the OrderBook Model/Domain
             val bestAsk = orderBook.asks.firstEntry()
 
             // if price has spread, then don't match or if asks/bids don't exist
@@ -99,6 +102,17 @@ class OrderBookService(private val orderBook: OrderBook) {
 
             // figure out the overlap between asks/bids based on the smaller amount so it can match
             val matchQuantity = bidOrderEntry.value.quantity.min(askOrderEntry.value.quantity)
+
+            val takerSide = if (bidOrderEntry.value.timestamp.isBefore(askOrderEntry.value.timestamp)) {
+                OrderSide.BUY
+            } else {
+                OrderSide.SELL
+            }
+
+            val tradePrice = if (takerSide == OrderSide.BUY) bestBid.key else bestAsk.key // determine which side initiated the order to get price.
+
+            tradeService.recordTrade(tradePrice, matchQuantity, bidOrderEntry.value.currencyPair, takerSide)
+
             isOrderMatched = true
             totalMatchedQuantity += matchQuantity
 
@@ -106,7 +120,6 @@ class OrderBookService(private val orderBook: OrderBook) {
             updateOrderQuantityAfterMatch(orderBook.bids, bestBid.key, bidOrderEntry.key, matchQuantity)
             updateOrderQuantityAfterMatch(orderBook.asks, bestAsk.key, askOrderEntry.key, matchQuantity)
 
-            // TODO(): will need to record this trade to be able to add it to the trade history
             orderBook.updateLastUpdated()
         }
 
@@ -165,8 +178,6 @@ class OrderBookService(private val orderBook: OrderBook) {
             )
         }
     }
-
-    // TODO() trade history, store in data structure when trade is successful
 
     // TODO() cancel orders, take in an orderId
 }
