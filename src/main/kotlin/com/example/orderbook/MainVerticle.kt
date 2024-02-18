@@ -28,7 +28,7 @@ class MainVerticle : AbstractVerticle() {
 
         // Recent trades
         val tradeService = TradeService()
-        val tradeController = TradeController(vertx, tradeService, mapper)
+        val tradeController = TradeController(vertx, tradeService)
         router.get("/api/recent-trades").handler(tradeController::handleGetTrades)
         // Orderbook
         val orderBookService = OrderBookService(OrderBook(), tradeService)
