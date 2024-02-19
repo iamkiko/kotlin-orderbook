@@ -20,12 +20,13 @@ class MatchingEngine(private val tradeService: TradeService, private val orderBo
             // exit early if no bids on either side i.e. no matchmaking can occur
             if (orderBook.bids.isEmpty() || orderBook.asks.isEmpty()) break
 
+            // TODO(): Put this logic into the OrderBook Model/Domain
             // retrieve the top most item in this stack i.e. top order in book
-            val bestBid = orderBook.bids.firstEntry() // TODO(): Put this logic into the OrderBook Model/Domain
+            val bestBid = orderBook.bids.firstEntry()
             val bestAsk = orderBook.asks.firstEntry()
 
             // if price has spread, then don't match or if asks/bids don't exist
-            if (bestBid == null || bestAsk == null  || bestBid.key < bestAsk.key) break
+            if (bestBid == null || bestAsk == null || bestBid.key < bestAsk.key) break
 
             val bidOrderEntry = bestBid.value.firstEntry()
             val askOrderEntry = bestAsk.value.firstEntry()
@@ -43,20 +44,13 @@ class MatchingEngine(private val tradeService: TradeService, private val orderBo
             isOrderMatched = true
             totalMatchedQuantity += matchQuantity
 
-
             tradeService.recordTrade(fulfilledTradePrice, matchQuantity, bidOrderEntry.value.currencyPair, takerSide)
-
 
             updateOrderQuantityAfterMatch(orderBook.bids, bestBid.key, bidOrderEntry.key, matchQuantity)
             updateOrderQuantityAfterMatch(orderBook.asks, bestAsk.key, askOrderEntry.key, matchQuantity)
 
             orderBook.updateLastUpdated()
-
         }
-
-//        if (isOrderMatched) {
-//            orderBook.updateLastUpdated()
-//        }
 
         return OrderMatchingStatus(isOrderMatched, totalMatchedQuantity, fulfilledTradePrice)
     }
@@ -87,29 +81,4 @@ class MatchingEngine(private val tradeService: TradeService, private val orderBo
             ordersAtPrice[orderTime] = order.copy(quantity = newQuantity)
         }
     }
-
-//    private fun updateOrderQuantityAfterMatch(
-//        priceLevel: BigDecimal,
-//        orderTime: Instant,
-//        matchQuantity: BigDecimal,
-//        side: OrderSide
-//    ) {
-//        val orderMap = if (side == OrderSide.BUY) orderBook.bids else orderBook.asks
-//        val ordersAtPriceLevel = orderMap[priceLevel]
-//        val order = ordersAtPriceLevel?.get(orderTime)
-//
-//        if (order != null) {
-//            val newQuantity = order.quantity - matchQuantity
-//            if (newQuantity <= BigDecimal.ZERO) {
-//                ordersAtPriceLevel.remove(orderTime)
-//                if (ordersAtPriceLevel.isEmpty()) {
-//                    orderMap.remove(priceLevel)
-//                }
-//            } else {
-//                ordersAtPriceLevel[orderTime] = order.copy(quantity = newQuantity)
-//            }
-//        }
-//
-//        orderBook.updateLastUpdated()
-//    }
 }

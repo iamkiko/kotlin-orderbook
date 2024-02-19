@@ -25,8 +25,6 @@ class OrderBookService(
                 orderDetails = null
             )
         }
-        // TODO() check in debugger what this value is - seems to add
-        // TODO is this adding the fulfilled order into the orderbook using addOrder?
         orderManager.addOrder(order)
         val matchResult = matchingEngine.matchOrders(orderBook)
         return orderManager.createAdditionStatus(order, matchResult)

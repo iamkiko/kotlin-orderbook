@@ -11,8 +11,6 @@ import java.util.TreeMap
 class OrderManager(
     private val orderBook: OrderBook
 ) {
-
-    // TODO is this adding the fulfilled order into the orderbook from the service?
     fun addOrder(order: Order) {
         val orderMap = if (order.side == OrderSide.BUY) orderBook.bids else orderBook.asks
         orderMap[order.price] = orderMap.getOrDefault(order.price, TreeMap()).apply {
