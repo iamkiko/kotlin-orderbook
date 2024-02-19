@@ -10,7 +10,7 @@ import java.util.*
 
 class OrderBookService(
     private val orderBook: OrderBook,
-    private val tradeService: TradeService,
+    tradeService: TradeService,
 ) {
     private val orderValidator = OrderValidator()
     private val orderManager = OrderManager(orderBook)
