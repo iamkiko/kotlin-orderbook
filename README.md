@@ -167,11 +167,9 @@ Response:
 
 ## Running Tests
 
-The project includes a comprehensive suite of tests to validate the functionality of each component. To run the tests:
+The project includes a suite of tests to validate the functionality of each component. To run the tests:
 
 1. Navigate to the project root directory in your terminal.
 2. Run the test suite using your build tool or IDE's test runner.
 
-The tests are categorized into unit and integration tests, focusing on individual components and their interactions, respectively.
-
-
+The tests are categorized into unit tests with the exception of the MatchingEngine which is an integration test.
