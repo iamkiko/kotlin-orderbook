@@ -83,7 +83,7 @@ Submits a limit order to the order book. The order must specify the side (buy or
   "side": "BUY or SELL",
   "quantity": "number",
   "price": "number",
-  "currencyPair": "string"
+  "currencyPair": "BTCUSDC" // default
 }
 ```
 **Example Response:**
