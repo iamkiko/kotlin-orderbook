@@ -115,5 +115,4 @@ class TradeServiceTest {
         // then ... we can determine that the taker side was the order that accepted the existing order
         assertEquals(OrderSide.BUY.toString(), trades.last().takerSide)
     }
-
 }
