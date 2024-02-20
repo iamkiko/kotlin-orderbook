@@ -1,8 +1,7 @@
 # Kotlin Orderbook
 
-This app is a simple in-memory order book for placing limit orders with order matching and viewing open orders and recent trades. It's designed to mimic basic functionalities of trading platforms, offering APIs for interacting with the order book, submitting limit orders, and viewing recent trade activities.
-
-The system is designed to simulate key functionalities of a crypto trading platform but only supports BTCUSDC as a currency pair for now.
+This app is a simple in-memory order book for placing limit orders with order matching and viewing open orders and recent trades.
+The system is designed to simulate basic functionalities of a crypto trading platform using BTCUSDC as the default currency pair.
 
 ## Prerequisites
 - Kotlin 1.9.0
