@@ -10,12 +10,11 @@ import java.util.*
 
 class OrderBookService(
     private val orderBook: OrderBook,
-    tradeService: TradeService,
+    private val tradeService: TradeService,
+    private val orderValidator: OrderValidator,
+    private val orderManager: OrderManager,
+    private val matchingEngine: MatchingEngine,
 ) {
-    private val orderValidator = OrderValidator()
-    private val orderManager = OrderManager(orderBook)
-    private val matchingEngine = MatchingEngine(tradeService, orderBook)
-
     fun addOrder(order: Order): OrderAdditionStatus {
         // block invalid orders
         if (!orderValidator.isValidOrder(order)) {

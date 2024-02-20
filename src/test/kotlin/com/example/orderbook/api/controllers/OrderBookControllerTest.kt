@@ -1,8 +1,7 @@
 package com.example.orderbook.api.controllers
 
 import com.example.orderbook.model.OrderBook
-import com.example.orderbook.service.OrderBookService
-import com.example.orderbook.service.TradeService
+import com.example.orderbook.service.*
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import io.vertx.core.Vertx
 import io.vertx.ext.web.client.WebClient
@@ -25,7 +24,11 @@ class OrderBookControllerTest {
     fun setUp(vertx: Vertx, vertxTestContext: VertxTestContext) {
         this.vertx = vertx
         this.tradeService = TradeService()
-        this.orderBookService = OrderBookService(OrderBook(), tradeService)
+        val orderBook = OrderBook()
+        val orderValidator = OrderValidator()
+        val orderManager = OrderManager(orderBook)
+        val matchingEngine = MatchingEngine(tradeService, orderBook)
+        this.orderBookService = OrderBookService(orderBook, tradeService, orderValidator, orderManager, matchingEngine)
         val mapper = jacksonObjectMapper();
         this.orderBookController = OrderBookController(vertx, orderBookService, mapper)
         val router = this.orderBookController.router

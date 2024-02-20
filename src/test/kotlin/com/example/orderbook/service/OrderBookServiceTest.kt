@@ -1,12 +1,8 @@
 package com.example.orderbook.service
-import com.example.orderbook.api.dto.OrderDTO
 import com.example.orderbook.model.*
 import io.mockk.every
 import io.mockk.mockk
-import io.mockk.verify
 import org.junit.jupiter.api.Assertions
-import org.junit.jupiter.api.Assertions.assertNotNull
-import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.math.BigDecimal
@@ -32,7 +28,7 @@ class OrderBookServiceTest {
     @BeforeEach
     fun setUp() {
         every { orderValidator.isValidOrder(any()) } returns true
-        orderBookService = OrderBookService(orderBook, tradeService)
+        orderBookService =  OrderBookService(orderBook, tradeService, orderValidator, orderManager, matchingEngine)
     }
 
 
@@ -114,13 +110,13 @@ class OrderBookServiceTest {
         val orderBookDTO = orderBookService.getOrderBookDTO()
 
         // then ... it should return the order book with the current orders
-        Assertions.assertEquals(1, orderBookDTO.bids.size)
-        Assertions.assertEquals(1, orderBookDTO.asks.size)
-        Assertions.assertEquals(OrderSide.BUY, enumValueOf<OrderSide>(orderBookDTO.bids.first().side))
-        Assertions.assertEquals(OrderSide.SELL, enumValueOf<OrderSide>(orderBookDTO.asks.first().side))
-        Assertions.assertEquals(BigDecimal("0.5"), orderBookDTO.bids.first().quantity)
-        Assertions.assertEquals(BigDecimal("49370.0"), orderBookDTO.bids.first().price)
-        Assertions.assertEquals(BigDecimal("0.7"), orderBookDTO.asks.first().quantity)
-        Assertions.assertEquals(BigDecimal("49475.0"), orderBookDTO.asks.first().price)
+        assertEquals(1, orderBookDTO.bids.size)
+        assertEquals(1, orderBookDTO.asks.size)
+        assertEquals(OrderSide.BUY, enumValueOf<OrderSide>(orderBookDTO.bids.first().side))
+        assertEquals(OrderSide.SELL, enumValueOf<OrderSide>(orderBookDTO.asks.first().side))
+        assertEquals(BigDecimal("0.5"), orderBookDTO.bids.first().quantity)
+        assertEquals(BigDecimal("49370.0"), orderBookDTO.bids.first().price)
+        assertEquals(BigDecimal("0.7"), orderBookDTO.asks.first().quantity)
+        assertEquals(BigDecimal("49475.0"), orderBookDTO.asks.first().price)
     }
 }

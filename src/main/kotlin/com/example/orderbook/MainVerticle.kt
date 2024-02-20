@@ -4,8 +4,7 @@ import com.example.orderbook.api.controllers.OrderBookController
 import com.example.orderbook.api.controllers.OrderController
 import com.example.orderbook.api.controllers.TradeController
 import com.example.orderbook.model.OrderBook
-import com.example.orderbook.service.OrderBookService
-import com.example.orderbook.service.TradeService
+import com.example.orderbook.service.*
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import io.vertx.core.AbstractVerticle
 import io.vertx.core.Promise
@@ -20,15 +19,13 @@ class MainVerticle : AbstractVerticle() {
         val router = Router.router(vertx)
         router.route().handler(BodyHandler.create()) // to parse incoming requests
 
-        router.get("/healthcheck").handler { routingContext ->
-            val response = routingContext.response()
-            response.putHeader("content-type", "application/json")
-                .end("""{"status": "up"}""")
-        }
-
-        // Recent trades
+        val orderBook = OrderBook()
         val tradeService = TradeService()
-        val orderBookService = OrderBookService(OrderBook(), tradeService)
+        val orderValidator = OrderValidator()
+        val orderManager = OrderManager(orderBook)
+        val matchingEngine = MatchingEngine(tradeService, orderBook)
+
+        val orderBookService = OrderBookService(orderBook, tradeService, orderValidator, orderManager, matchingEngine)
 
         val tradeController = TradeController(vertx, tradeService)
         val orderBookController = OrderBookController(vertx, orderBookService, mapper)
@@ -37,7 +34,6 @@ class MainVerticle : AbstractVerticle() {
         router.get("/api/orderbook").handler(orderBookController::handleGetOrderBook)
         router.get("/api/recent-trades").handler(tradeController::handleGetTrades)
         router.post("/api/orders/limit").handler(orderController::handleAddLimitOrder)
-
 
         vertx.createHttpServer()
             .requestHandler(router)
@@ -50,6 +46,13 @@ class MainVerticle : AbstractVerticle() {
                 println("Failed to start HTTP server: ${throwable.message}")
                 promise.fail(throwable)
             }
+
+
+        router.get("/healthcheck").handler { routingContext ->
+            val response = routingContext.response()
+            response.putHeader("content-type", "application/json")
+                .end("""{"status": "up"}""")
+        }
     }
 
 }
