@@ -34,8 +34,8 @@ class OrderControllerTest {
         val matchingEngine = MatchingEngine(tradeService, orderBook)
         this.orderBookService = OrderBookService(orderBook, tradeService, orderValidator, orderManager, matchingEngine)
         this.orderController = OrderController(vertx, orderBookService)
-        val router = this.orderController.router
 
+        val router = this.orderController.router
         router.route().handler(BodyHandler.create())
         orderController.setupRoutes()
 

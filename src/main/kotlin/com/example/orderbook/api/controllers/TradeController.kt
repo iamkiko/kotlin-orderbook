@@ -2,14 +2,11 @@ package com.example.orderbook.api.controllers
 
 import io.vertx.core.Vertx
 import com.example.orderbook.service.TradeService
-import com.example.orderbook.util.Serializer
 import com.example.orderbook.util.Serializer.jacksonObjectMapper
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.databind.SerializationFeature
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import io.vertx.core.json.Json
 import io.vertx.ext.web.Router
 import io.vertx.ext.web.RoutingContext
+import io.vertx.ext.web.handler.BodyHandler
 
 class TradeController(vertx: Vertx, private val tradeService: TradeService) {
     val router: Router = Router.router(vertx)
@@ -20,6 +17,7 @@ class TradeController(vertx: Vertx, private val tradeService: TradeService) {
     }
 
     fun setupRoutes() {
+        router.route().handler(BodyHandler.create())
         router.get("/api/recent-trades").handler(this::handleGetTrades)
     }
 
