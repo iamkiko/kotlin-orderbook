@@ -3,16 +3,12 @@ package com.example.orderbook.api.controllers
 import com.example.orderbook.api.dto.TradeDTO
 import com.example.orderbook.model.OrderSide
 import com.example.orderbook.service.TradeService
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import io.mockk.every
 import io.mockk.mockk
 import io.vertx.core.Vertx
-import io.vertx.ext.web.Router
 import io.vertx.ext.web.client.WebClient
 import io.vertx.junit5.VertxExtension
 import io.vertx.junit5.VertxTestContext
-import io.vertx.kotlin.core.json.get
-import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test

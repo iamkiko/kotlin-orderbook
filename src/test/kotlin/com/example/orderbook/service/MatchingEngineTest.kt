@@ -168,5 +168,4 @@ class MatchingEngineTest {
         val lastTrade = capturedTrades.last()
         assertEquals(BigDecimal("44000.0"), lastTrade.price)
     }
-
 }
