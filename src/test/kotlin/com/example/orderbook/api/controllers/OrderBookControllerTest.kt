@@ -29,8 +29,7 @@ class OrderBookControllerTest {
         val orderManager = OrderManager(orderBook)
         val matchingEngine = MatchingEngine(tradeService, orderBook)
         this.orderBookService = OrderBookService(orderBook, tradeService, orderValidator, orderManager, matchingEngine)
-        val mapper = jacksonObjectMapper();
-        this.orderBookController = OrderBookController(vertx, orderBookService, mapper)
+        this.orderBookController = OrderBookController(vertx, orderBookService)
         val router = this.orderBookController.router
 
         orderBookController.setupRoutes()
@@ -46,7 +45,7 @@ class OrderBookControllerTest {
         // given ... an existing orderbook
         // when ... we send a request to the orderbook
         val responseFuture = webClient.get(8888, "localhost", "/api/orderbook")
-            .putHeader("content-type", "application/json")
+            .putHeader("Content-Type", "application/json")
             .send()
 
         // then ... we can assert that it successfully retrieves it based on the data + response code
@@ -67,7 +66,7 @@ class OrderBookControllerTest {
         // given ... a request
         // when ... a request is sent to a non-existent endpoint
         val responseFuture = webClient.get(8888, "localhost", "/api/thisdoesnotexist")
-            .putHeader("content-type", "application/json")
+            .putHeader("Content-Type", "application/json")
             .send()
 
         // then ... we return the correct status code

@@ -2,6 +2,8 @@ package com.example.orderbook.api.controllers
 
 import io.vertx.core.Vertx
 import com.example.orderbook.service.TradeService
+import com.example.orderbook.util.Serializer
+import com.example.orderbook.util.Serializer.jacksonObjectMapper
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
@@ -11,10 +13,7 @@ import io.vertx.ext.web.RoutingContext
 
 class TradeController(vertx: Vertx, private val tradeService: TradeService) {
     val router: Router = Router.router(vertx)
-    private val mapper: ObjectMapper = ObjectMapper().apply {
-        registerModule(JavaTimeModule())
-        disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
-    }
+    private val mapper = jacksonObjectMapper
 
     init {
         setupRoutes()

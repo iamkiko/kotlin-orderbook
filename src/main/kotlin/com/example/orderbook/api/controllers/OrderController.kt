@@ -4,15 +4,16 @@ import com.example.orderbook.api.dto.OrderDTO
 import com.example.orderbook.model.Order
 import com.example.orderbook.model.OrderSide
 import com.example.orderbook.service.OrderBookService
-import com.fasterxml.jackson.databind.ObjectMapper
+import com.example.orderbook.util.Serializer.jacksonObjectMapper
 import com.fasterxml.jackson.databind.exc.MismatchedInputException
 import io.vertx.core.Vertx
 import io.vertx.core.json.Json
 import io.vertx.ext.web.Router
 import io.vertx.ext.web.RoutingContext
 
-class OrderController(vertx: Vertx, private val orderBookService: OrderBookService, private val mapper: ObjectMapper) {
+class OrderController(vertx: Vertx, private val orderBookService: OrderBookService) {
     val router: Router = Router.router(vertx)
+    private val mapper = jacksonObjectMapper
 
     init {
         setupRoutes()

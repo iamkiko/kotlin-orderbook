@@ -1,18 +1,13 @@
 package com.example.orderbook.api.controllers
 
-import com.example.orderbook.api.dto.OrderDTO
 import com.example.orderbook.model.OrderBook
-import com.example.orderbook.model.OrderSide
 import com.example.orderbook.service.*
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import io.vertx.core.Vertx
 import io.vertx.core.json.JsonObject
-import io.vertx.ext.web.Router
 import io.vertx.ext.web.client.WebClient
 import io.vertx.ext.web.handler.BodyHandler
 import io.vertx.junit5.VertxExtension
 import io.vertx.junit5.VertxTestContext
-import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -38,8 +33,7 @@ class OrderControllerTest {
         val orderManager = OrderManager(orderBook)
         val matchingEngine = MatchingEngine(tradeService, orderBook)
         this.orderBookService = OrderBookService(orderBook, tradeService, orderValidator, orderManager, matchingEngine)
-        val mapper = jacksonObjectMapper()
-        this.orderController = OrderController(vertx, orderBookService, mapper)
+        this.orderController = OrderController(vertx, orderBookService)
         val router = this.orderController.router
 
         router.route().handler(BodyHandler.create())

@@ -28,8 +28,8 @@ class MainVerticle : AbstractVerticle() {
         val orderBookService = OrderBookService(orderBook, tradeService, orderValidator, orderManager, matchingEngine)
 
         val tradeController = TradeController(vertx, tradeService)
-        val orderBookController = OrderBookController(vertx, orderBookService, mapper)
-        val orderController = OrderController(vertx, orderBookService, mapper)
+        val orderBookController = OrderBookController(vertx, orderBookService)
+        val orderController = OrderController(vertx, orderBookService)
 
         router.get("/api/orderbook").handler(orderBookController::handleGetOrderBook)
         router.get("/api/recent-trades").handler(tradeController::handleGetTrades)
@@ -50,7 +50,7 @@ class MainVerticle : AbstractVerticle() {
 
         router.get("/healthcheck").handler { routingContext ->
             val response = routingContext.response()
-            response.putHeader("content-type", "application/json")
+            response.putHeader("Content-Type", "application/json")
                 .end("""{"status": "up"}""")
         }
     }

@@ -1,15 +1,16 @@
 package com.example.orderbook.api.controllers
 
 import com.example.orderbook.service.OrderBookService
-import com.fasterxml.jackson.databind.ObjectMapper
+import com.example.orderbook.util.Serializer.jacksonObjectMapper
 import io.vertx.core.Vertx
 import io.vertx.ext.web.Router
 import io.vertx.ext.web.RoutingContext
 
-class OrderBookController(vertx: Vertx, private val orderBookService: OrderBookService, private val mapper: ObjectMapper) {
+class OrderBookController(vertx: Vertx, private val orderBookService: OrderBookService) {
     val router: Router = Router.router(vertx)
+    private val mapper = jacksonObjectMapper
 
-    init {
+        init {
         setupRoutes()
     }
 
