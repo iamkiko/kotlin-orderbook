@@ -15,4 +15,12 @@ data class OrderBook(
         lastUpdated = Instant.now()
         tradeSequenceNumber++
     }
+
+    fun getBestBid(): Map.Entry<BigDecimal, TreeMap<Instant, Order>>? {
+        return bids.firstEntry()
+    }
+
+    fun getBestAsk(): Map.Entry<BigDecimal, TreeMap<Instant, Order>>? {
+        return asks.firstEntry()
+    }
 }

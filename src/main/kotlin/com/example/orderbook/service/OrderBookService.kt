@@ -26,7 +26,7 @@ class OrderBookService(
             )
         }
         orderManager.addOrder(order)
-        val matchResult = matchingEngine.matchOrders(orderBook)
+        val matchResult = matchingEngine.matchOrders()
         return orderManager.createAdditionStatus(order, matchResult)
     }
 

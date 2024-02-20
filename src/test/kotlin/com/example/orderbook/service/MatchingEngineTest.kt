@@ -61,7 +61,7 @@ class MatchingEngineTest {
         orderManager.addOrder(sellOrder)
 
         // when ... matching orders
-        val matchResult = matchingEngine.matchOrders(orderBook)
+        val matchResult = matchingEngine.matchOrders()
 
         // then ... we expect orders to be fully matched
         assertTrue(matchResult.isOrderMatched)
@@ -79,7 +79,7 @@ class MatchingEngineTest {
         orderManager.addOrder(sellOrder)
 
         // when ... matching orders
-        val matchResult = matchingEngine.matchOrders(orderBook)
+        val matchResult = matchingEngine.matchOrders()
         val firstBidOrder = orderBook.bids.values.first().values.first()
 
         // then ... we expect orders to be partially matched
@@ -100,7 +100,7 @@ class MatchingEngineTest {
         orderManager.addOrder(sellOrder)
 
         // when ... matching orders
-        val matchResult = matchingEngine.matchOrders(orderBook)
+        val matchResult = matchingEngine.matchOrders()
         val firstBidOrder = orderBook.bids.values.first().values.first()
         val firstAskOrder = orderBook.asks.values.first().values.first()
 
@@ -120,7 +120,7 @@ class MatchingEngineTest {
         orderManager.addOrder(sellOrder)
 
         // when ... matching orders
-        matchingEngine.matchOrders(orderBook)
+        matchingEngine.matchOrders()
 
         // then ... we can verify the matched orders are removed and the order book is empty
         assertTrue(orderBook.bids.isEmpty() || orderBook.asks.isEmpty())
@@ -139,7 +139,7 @@ class MatchingEngineTest {
         orderManager.addOrder(sellOrderAtCurrentPrice)
         orderManager.addOrder(sellOrderAtLowestPrice)
         orderManager.addOrder(buyOrderAtCurrentPrice)
-        matchingEngine.matchOrders(orderBook)
+        matchingEngine.matchOrders()
 
         val orderBookSnapshot = orderManager.getOrderBookSnapshot(orderBook)
 
@@ -161,7 +161,7 @@ class MatchingEngineTest {
     // when ... we add orders to the order book and match them
         orderManager.addOrder(highPriceBuyOrder)
         orderManager.addOrder(lowPriceSellOrder)
-        matchingEngine.matchOrders(orderBook)
+        matchingEngine.matchOrders()
 
         // then ... the buy order is executed at the lowest available price
         assertFalse(capturedTrades.isEmpty())
