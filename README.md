@@ -14,7 +14,6 @@ The system is designed to simulate basic functionalities of a crypto trading pla
 3. Run `gradle build` to build the project.
 4. Start the application using `gradle run` or run it in IntelliJ
 
-
 ## Components
 
 - **OrderBookService**: Manages the current state of buy and sell orders.
@@ -177,3 +176,51 @@ The project includes a suite of tests to validate the functionality of each comp
 2. Run the test suite using your build tool or IDE's test runner.
 
 The tests are categorized into unit tests except the MatchingEngine which is an integration test.
+
+## Performance Testing/Simulation Script
+
+A script to simulate orders en-masse exists in `/util/PerformanceTest.kt`
+
+### Prerequisites
+
+Before running the performance testing script, ensure are running the app.
+
+### Configuration
+
+The performance testing script is configured to target the following API endpoint by default:
+
+- **API Endpoint**: `http://localhost:8085/api/orders/limit`
+
+The default script settings are as follows:
+
+- **Total Requests**: 100,000
+- **Concurrency Level**: 100
+
+These settings can be adjusted within the script to simulate different levels of load.
+
+### Running the Performance Test
+
+To run the performance testing script, execute the following command from the root directory of your project:
+
+```shell
+./gradlew runPerformanceTest
+```
+Alternatively, (a) in Intellij, you can locate the Gradle task under 'Other' and run it from there or (b) run the class directly from the file location.
+
+### Interpreting Results
+The script will provide the following output upon completion:
+
+* **Total time taken:** The total time, in milliseconds, taken to send all requests and receive responses
+* **Average rate:** The average rate of requests per second calculated `(requests / time in seconds)`
+* **Request failures:** Any failed requests will be logged with their status code and response body
+
+### Customization
+To customize the performance test settings, edit the following variables within the script:
+
+```kotlin
+
+val apiUrl = "http://localhost:8085/api/orders/limit" // API endpoint
+val totalRequests = 100000 // Total number of requests to send
+val concurrencyLevel = 100 // Number of concurrent requests
+```
+Adjust these variables to target different endpoints, change the load level, or modify the concurrency of the requests.

@@ -30,7 +30,4 @@ class OrderBookService(
     }
 
     fun getOrderBookDTO(): OrderBookDTO = orderManager.getOrderBookSnapshot(orderBook)
-
-
-    // TODO() cancel orders, take in an orderId
 }

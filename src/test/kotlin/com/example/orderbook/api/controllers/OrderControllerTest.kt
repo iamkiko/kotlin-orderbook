@@ -95,7 +95,6 @@ class OrderControllerTest {
         })
     }
 
-    // TODO(): Is this necessary?
     @Test
     fun `should fail to add order when we a field is missing for limit orders, returning a bad request (400)`(
         vertxTestContext: VertxTestContext

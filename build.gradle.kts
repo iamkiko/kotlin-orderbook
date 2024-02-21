@@ -2,6 +2,9 @@ plugins {
     kotlin("jvm") version "1.9.0"
     application
 }
+application {
+    mainClass = "com/example/orderbook/AppKt"
+}
 
 group = "org.christos"
 version = "1.0-SNAPSHOT"
@@ -33,10 +36,21 @@ dependencies {
     // Env variables
     implementation("io.github.cdimascio:dotenv-kotlin:6.4.1")
 
+    // Coroutines
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.0")
+    implementation("io.vertx:vertx-lang-kotlin-coroutines:4.5.3")
+
+    // Netty
+    implementation("io.netty:netty-all:4.1.107.Final")
 }
 
 tasks.test {
     useJUnitPlatform()
+}
+
+tasks.register<JavaExec>("runPerformanceTest") {
+    classpath = sourceSets["main"].runtimeClasspath
+    mainClass = "com/example/orderbook/util/PerformanceTestKt"
 }
 
 kotlin {
