@@ -2,7 +2,6 @@ package com.example.orderbook.api.controllers
 
 import com.example.orderbook.model.OrderBook
 import com.example.orderbook.service.*
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import io.vertx.core.Vertx
 import io.vertx.ext.web.client.WebClient
 import io.vertx.junit5.VertxExtension

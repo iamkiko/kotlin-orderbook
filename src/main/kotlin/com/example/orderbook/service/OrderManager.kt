@@ -23,8 +23,6 @@ class OrderManager(
         val originalOrder =
             order.copy(quantity = order.quantity) // we make a copy to accurately return the status to the user
 
-        orderBook.updateLastUpdated()
-
         val isOrderPartiallyFilled = matchResult.totalMatchedQuantity > BigDecimal.ZERO &&
                 matchResult.totalMatchedQuantity < originalOrder.quantity
         val isOrderFullyFilled = matchResult.totalMatchedQuantity >= originalOrder.quantity

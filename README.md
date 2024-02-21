@@ -5,18 +5,19 @@ The system is designed to simulate basic functionalities of a crypto trading pla
 
 ## Prerequisites
 - Kotlin 1.9.0
+- JDK 17
 - Gradle
 
 ## Setup
 1. Clone the repository to your local machine.
 2. Navigate to the project directory.
 3. Run `gradle build` to build the project.
-4. Start the application using `gradle run`.
+4. Start the application using `gradle run` or run it in IntelliJ
 
 
 ## Components
 
-- **OrderBook**: Manages the current state of buy and sell orders.
+- **OrderBookService**: Manages the current state of buy and sell orders.
 - **OrderManager**: Responsible for adding orders to the OrderBook and generating snapshots of the current order book state.
 - **MatchingEngine**: Matches buy and sell orders based on price and quantity, updates the OrderBook accordingly, and records the trades.
 - **TradeService**: Records details of matched trades and retrieves information about past trades.
@@ -30,15 +31,15 @@ The system is designed to simulate basic functionalities of a crypto trading pla
 - **Order Book Snapshot**: Retrieve a snapshot of the current state of the order book, including all outstanding orders.
 
 ### Libraries Used
-The project utilizes various libraries from the Vert.x ecosystem for creating reactive web applications in Kotlin, as well as Jackson for JSON serialization/deserialization, and JUnit, MockK for testing.
-
 - Vert.x (Core, Web, Web Client, Config, Auth JWT)
 - Jackson (Kotlin module, Databind, Datatype JSR310)
-- JUnit Jupiter API for testing
+- JUnit5 for testing
 - MockK for mocking in tests
 
+Feel free to peruse the build.gradle for the comprehensive list.
+
 ## Usage
-By default, the app will run on port 8085.
+By default, the app will run on port 8085, you can change that in the MainVerticle and in application.conf
 
 
 ## Order Book
@@ -87,8 +88,9 @@ Submits a limit order to the order book. The order must specify the side (buy or
 }
 ```
 **Example Response:**
+
+When order is not matched and added to the order book:
   ```json
-// when not matched
   {
   "success": true,
   "message": "Order added to book, no immediate match found, pending fulfillment.",
@@ -102,8 +104,10 @@ Submits a limit order to the order book. The order must specify the side (buy or
   },
   "orderMatched": false
 }
+ ```
 
-// when order is fully filled:
+When order is matched and fully filled:
+  ```json
 {
   "success": true,
   "message": "Order fully filled.",
@@ -117,8 +121,9 @@ Submits a limit order to the order book. The order must specify the side (buy or
   },
   "orderMatched": true
 }
-
-// when order is partially filled:
+```
+When order is matched and partially filled:
+  ```json
 {
   "success": true,
   "message": "Order partially filled.",
@@ -139,7 +144,7 @@ Submits a limit order to the order book. The order must specify the side (buy or
 
 Fetches a list of recent trades executed in the system.
 
-Response:
+**Example Response:**
 
 ```json
 [
@@ -158,7 +163,7 @@ Response:
         "currencyPair": "BTCUSDC",
         "timestamp": "2024-02-20T19:00:00.340939Z",
         "takerSide": "BUY"
-    },
+    }
 ]
 ```
 
@@ -171,4 +176,4 @@ The project includes a suite of tests to validate the functionality of each comp
 1. Navigate to the project root directory in your terminal.
 2. Run the test suite using your build tool or IDE's test runner.
 
-The tests are categorized into unit tests with the exception of the MatchingEngine which is an integration test.
+The tests are categorized into unit tests except the MatchingEngine which is an integration test.
