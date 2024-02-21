@@ -1,13 +1,16 @@
 package com.example.orderbook
 
+import com.example.orderbook.api.controllers.AuthController
 import com.example.orderbook.api.controllers.OrderBookController
 import com.example.orderbook.api.controllers.OrderController
 import com.example.orderbook.api.controllers.TradeController
 import com.example.orderbook.model.OrderBook
 import com.example.orderbook.service.*
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import io.vertx.core.AbstractVerticle
 import io.vertx.core.Promise
+import io.vertx.ext.auth.KeyStoreOptions
+import io.vertx.ext.auth.jwt.JWTAuth
+import io.vertx.ext.auth.jwt.JWTAuthOptions
 import io.vertx.ext.web.Router
 import io.vertx.ext.web.handler.BodyHandler
 
@@ -15,9 +18,18 @@ import io.vertx.ext.web.handler.BodyHandler
 class MainVerticle : AbstractVerticle() {
 
     override fun start(promise: Promise<Void>) {
-        val mapper = jacksonObjectMapper()
         val router = Router.router(vertx)
         router.route().handler(BodyHandler.create()) // to parse incoming requests
+
+        val jwtAuth = JWTAuth.create(vertx, JWTAuthOptions().apply {
+            keyStore = KeyStoreOptions().apply {
+                path = "keystore.jceks"
+                type = "jceks"
+                password = "secret"
+            }
+        })
+
+
 
         val orderBook = OrderBook()
         val tradeService = TradeService()
@@ -27,6 +39,7 @@ class MainVerticle : AbstractVerticle() {
 
         val orderBookService = OrderBookService(orderBook, tradeService, orderValidator, orderManager, matchingEngine)
 
+        val authController = AuthController(vertx, jwtAuth)
         val tradeController = TradeController(vertx, tradeService)
         val orderBookController = OrderBookController(vertx, orderBookService)
         val orderController = OrderController(vertx, orderBookService)
@@ -34,6 +47,7 @@ class MainVerticle : AbstractVerticle() {
         router.get("/api/orderbook").handler(orderBookController::handleGetOrderBook)
         router.get("/api/recent-trades").handler(tradeController::handleGetTrades)
         router.post("/api/orders/limit").handler(orderController::handleAddLimitOrder)
+        router.post("/api/login").handler(authController::handleLogin)
 
         vertx.createHttpServer()
             .requestHandler(router)
