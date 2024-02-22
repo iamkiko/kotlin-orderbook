@@ -24,7 +24,7 @@ class MainVerticle : AbstractVerticle() {
         val router = Router.router(vertx)
         router.route().handler(BodyHandler.create()) // to parse incoming requests
 
-        val symmetricKey = dotenv["SYMMETRIC_KEY"]
+        val symmetricKey = dotenv["SYMMETRIC_KEY"] ?: ""
         val jwtAuth = JWTAuth.create(vertx, JWTAuthOptions().apply {
             addPubSecKey(
                 PubSecKeyOptions()

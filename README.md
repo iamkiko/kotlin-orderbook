@@ -12,22 +12,22 @@ The system is designed to simulate basic functionalities of a crypto trading pla
 1. Clone the repository to your local machine.
 2. Navigate to the project directory.
 3. Run `gradle build` to build the project.
-4. Start the application using `gradle run` or run it in IntelliJ
+4. Start the application using `gradle run` or run the [App.kt](src/main/kotlin/com/example/orderbook/App.kt) file in IntelliJ
 
 ## Components
 
-- **OrderBookService**: Manages the current state of buy and sell orders.
-- **OrderManager**: Responsible for adding orders to the OrderBook and generating snapshots of the current order book state.
-- **MatchingEngine**: Matches buy and sell orders based on price and quantity, updates the OrderBook accordingly, and records the trades.
-- **TradeService**: Records details of matched trades and retrieves information about past trades.
-- **OrderValidator**: Validates the details of orders before they are processed by the system.
+- **OrderBookService**: Manages the current state of buy and sell orders
+- **OrderManager**: Responsible for adding orders to the OrderBook and generating snapshots of the current order book state
+- **MatchingEngine**: Matches buy and sell orders based on price and quantity, updates the OrderBook accordingly, and records the trades
+- **TradeService**: Records details of matched trades and retrieves information about past trades
+- **OrderValidator**: Validates the details of orders before they are processed by the system
 
 ## Features
 
-- **Order Management**: Add buy and sell orders with validations to ensure order integrity.
-- **Trade Matching**: Automatically match orders within the order book based on price and quantity.
-- **Trade Recording**: Record the details of each trade, including price, quantity, and the taker side.
-- **Order Book Snapshot**: Retrieve a snapshot of the current state of the order book, including all outstanding orders.
+- **Order Management**: Add buy and sell orders with validations to ensure order integrity
+- **Trade Matching**: Automatically match orders within the order book based on price and quantity
+- **Trade Recording**: Record the details of each trade, including price, quantity, and the taker side
+- **Order Book Snapshot**: Retrieve a snapshot of the current state of the order book, including all outstanding orders
 
 ### Libraries Used
 - Vert.x (Core, Web, Web Client, Config, Auth JWT)
@@ -39,7 +39,36 @@ Feel free to peruse the build.gradle for the comprehensive list.
 
 ## Usage
 By default, the app will run on port 8085, you can change that in the MainVerticle and in application.conf
+To secure and manage access to placing limit orders on /api/orders/limit, our application utilizes JWT for authentication.
 
+## Authentication Setup
+Before being able to place limit orders on `/api/orders/limit`, you will need to:
+
+1. Make a copy of `.env.example` and rename it to `.env` for your environment variables
+2. Generate a symmetric key: run `openssl rand -base64 32` to generate a secure key (however any key will work for the handshake)
+3. Add the symmetric key to your `.env` file, for `SYMMETRIC_KEY` (this is used to generate a JWT in the app)
+4. Add your desired username/password to the `.env` under `USERNAME` and `PASSWORD` respectively.
+5. Login to obtain a bearer token:
+- Endpoint: `/api/login`
+- Method: POST 
+- Body: 
+```json
+{
+  "username": "<YOUR_USERNAME_FROM_.ENV>",
+  "password": "<YOUR_PASSWORD_FROM_.ENV>"
+}
+```
+
+**Limitation:** As this is an in-memory approach, there is no external DB to assert the credentials against.
+
+Use the obtained bearer token in the Authorization header placing limit orders on `/api/orders/limit`.
+
+### Public Endpoints:
+- `/api/orderbook` 
+- `/api/recent-trades`
+
+### Protected Endpoint
+`/api/orders/limit` requires signing in and including the bearer token in the Authorization header.
 
 ## Order Book
 ### **GET `/api/orderbook`**
@@ -75,6 +104,7 @@ By default, the app will run on port 8085, you can change that in the MainVertic
 ## Submit Limit Order
 ### **POST`/api/orders/limit`**
 
+### Please ensure you have a valid auth token.
 Submits a limit order to the order book. The order must specify the side (buy or sell), quantity, price, and currency pair.
 
 **Request Body:**
@@ -179,11 +209,15 @@ The tests are categorized into unit tests except the MatchingEngine which is an 
 
 ## Performance Testing/Simulation Script
 
-A script to simulate orders en-masse exists in `/util/PerformanceTest.kt`
+A script to simulate orders en-masse exists in [PerformanceTest.kt](src/main/kotlin/com/example/orderbook/util/PerformanceTest.kt)
+
+**NB:** This will create orders in your orderbook and you will need to re-start the service to clear it.
 
 ### Prerequisites
 
-Before running the performance testing script, ensure are running the app.
+1. You need to be running the app
+2. You need a username and password in your `.env`
+
 
 ### Configuration
 
@@ -218,8 +252,6 @@ The script will provide the following output upon completion:
 To customize the performance test settings, edit the following variables within the script:
 
 ```kotlin
-
-val apiUrl = "http://localhost:8085/api/orders/limit" // API endpoint
 val totalRequests = 100000 // Total number of requests to send
 val concurrencyLevel = 100 // Number of concurrent requests
 ```

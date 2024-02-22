@@ -2,6 +2,7 @@ package com.example.orderbook.api.controllers
 
 import com.example.orderbook.api.dto.LoginDTO
 import com.example.orderbook.util.Serializer
+import io.github.cdimascio.dotenv.dotenv
 import io.vertx.core.Vertx
 import io.vertx.core.json.Json
 import io.vertx.ext.auth.JWTOptions
@@ -15,6 +16,7 @@ import io.vertx.kotlin.core.json.obj
 class AuthController(vertx: Vertx, private val jwtAuth: JWTAuth) {
     val router: Router = Router.router(vertx)
     private val mapper = Serializer.jacksonObjectMapper
+    private val dotenv = dotenv()
 
     init {
         router.route().handler(BodyHandler.create())
@@ -28,7 +30,7 @@ class AuthController(vertx: Vertx, private val jwtAuth: JWTAuth) {
     fun handleLogin(ctx: RoutingContext) {
         try {
             val credentials = mapper.readValue(ctx.body().asString(), LoginDTO::class.java)
-            if ("satoshi" == credentials.username && "halfinney@09!" == credentials.password) {
+            if (dotenv["USERNAME"]  == credentials.username && dotenv["PASSWORD"] == credentials.password) {
                 val token = jwtAuth.generateToken(
                     json {
                         obj("sub" to credentials.username, "permissions" to listOf("user"))
