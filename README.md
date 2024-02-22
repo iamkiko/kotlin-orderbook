@@ -31,9 +31,11 @@ The system is designed to simulate basic functionalities of a crypto trading pla
 
 ### Libraries Used
 - Vert.x (Core, Web, Web Client, Config, Auth JWT)
-- Jackson (Kotlin module, Databind, Datatype JSR310)
+- Jackson for serialization (Kotlin module, Databind, Datatype JSR310)
 - JUnit5 for testing
 - MockK for mocking in tests
+- Dotenv for environment variables
+- Coroutines for performance testing
 
 Feel free to peruse the build.gradle for the comprehensive list.
 
@@ -68,7 +70,7 @@ Use the obtained bearer token in the Authorization header placing limit orders o
 - `/api/recent-trades`
 
 ### Protected Endpoint
-`/api/orders/limit` requires signing in and including the bearer token in the Authorization header.
+- `/api/orders/limit` requires signing in and including the bearer token in the Authorization header.
 
 ## Order Book
 ### **GET `/api/orderbook`**
