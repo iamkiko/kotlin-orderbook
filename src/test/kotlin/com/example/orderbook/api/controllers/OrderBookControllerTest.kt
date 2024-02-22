@@ -15,6 +15,7 @@ import kotlin.test.assertEquals
 @ExtendWith(VertxExtension::class)
 class OrderBookControllerTest {
     private lateinit var vertx: Vertx
+    private lateinit var webClient: WebClient
     private lateinit var orderBookService: OrderBookService
     private lateinit var tradeService: TradeService
     private lateinit var orderBookController: OrderBookController
@@ -22,6 +23,7 @@ class OrderBookControllerTest {
     @BeforeEach
     fun setUp(vertx: Vertx, vertxTestContext: VertxTestContext) {
         this.vertx = vertx
+        this.webClient = WebClient.create(vertx)
         this.tradeService = TradeService()
         val orderBook = OrderBook()
         val orderValidator = OrderValidator()
@@ -40,7 +42,6 @@ class OrderBookControllerTest {
 
     @Test
     fun `should successfully retrieve the order book`(vertxTestContext: VertxTestContext) {
-        val webClient = WebClient.create(vertx)
         // given ... an existing orderbook
         // when ... we send a request to the orderbook
         val responseFuture = webClient.get(8888, "localhost", "/api/orderbook")
@@ -61,7 +62,6 @@ class OrderBookControllerTest {
 
     @Test
     fun `should not return data sent to non-existent endpoints`(vertxTestContext: VertxTestContext) {
-        val webClient = WebClient.create(vertx)
         // given ... a request
         // when ... a request is sent to a non-existent endpoint
         val responseFuture = webClient.get(8888, "localhost", "/api/thisdoesnotexist")

@@ -20,12 +20,14 @@ import java.util.*
 @ExtendWith(VertxExtension::class)
 class TradeControllerTest {
     private lateinit var vertx: Vertx
+    private lateinit var webClient: WebClient
     private lateinit var tradeService: TradeService
     private lateinit var tradeController: TradeController
 
     @BeforeEach
     fun setUp(vertx: Vertx, vertxTestContext: VertxTestContext) {
         this.vertx = vertx
+        this.webClient = WebClient.create(vertx)
         this.tradeService = mockk()
         this.tradeController = TradeController(vertx, tradeService)
 
@@ -58,9 +60,7 @@ class TradeControllerTest {
 
     @Test
     fun `should successfully retrieve recent trades`(vertxTestContext: VertxTestContext) {
-        val webClient = WebClient.create(vertx)
         // given ... we have 2 trades in the recent trades as mocked
-
         // when ... we request the recent trades
         // then ... we can assert we have successfully retrieved them
         webClient.get(8888, "localhost", "/api/recent-trades")

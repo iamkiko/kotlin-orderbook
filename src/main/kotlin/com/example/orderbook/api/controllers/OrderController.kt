@@ -11,8 +11,9 @@ import io.vertx.core.json.Json
 import io.vertx.ext.web.Router
 import io.vertx.ext.web.RoutingContext
 import io.vertx.ext.web.handler.BodyHandler
+import io.vertx.ext.web.handler.JWTAuthHandler
 
-class OrderController(vertx: Vertx, private val orderBookService: OrderBookService) {
+class OrderController(vertx: Vertx, private val orderBookService: OrderBookService, private val authHandler: JWTAuthHandler) {
     val router: Router = Router.router(vertx)
     private val mapper = jacksonObjectMapper
 
@@ -22,7 +23,7 @@ class OrderController(vertx: Vertx, private val orderBookService: OrderBookServi
     }
 
     fun setupRoutes() {
-        router.post("/api/orders/limit").handler(this::handleAddLimitOrder)
+        router.post("/api/orders/limit").handler(authHandler).handler(this::handleAddLimitOrder)
     }
 
     fun handleAddLimitOrder(ctx: RoutingContext) {
