@@ -9,7 +9,6 @@ import kotlin.test.assertNotEquals
 import kotlin.test.assertTrue
 
 class TradeServiceTest {
-
     private lateinit var tradeService: TradeService
 
     @BeforeEach

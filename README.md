@@ -210,9 +210,9 @@ The project includes a suite of tests to validate the functionality of each comp
 
 The tests are categorized into unit tests except the MatchingEngine which is an integration test.
 
-## Performance Testing/Simulation Script
+## Performance Simulation Script
 
-A script to simulate orders en-masse exists in [PerformanceTest.kt](src/main/kotlin/com/example/orderbook/util/PerformanceTest.kt)
+A script to simulate orders en-masse exists in [PerformanceSimulation.kt](src/main/kotlin/com/example/orderbook/util/PerformanceTest.kt)
 
 **NB:** This will create orders in your orderbook and you will need to re-start the service to clear it.
 
@@ -224,7 +224,7 @@ A script to simulate orders en-masse exists in [PerformanceTest.kt](src/main/kot
 
 ### Configuration
 
-The performance testing script is configured to target the following API endpoint by default:
+The performance simulation script is configured to target the following API endpoint by default:
 
 - **API Endpoint**: `http://localhost:8085/api/orders/limit`
 
@@ -235,12 +235,12 @@ The default script settings are as follows:
 
 These settings can be adjusted within the script to simulate different levels of load.
 
-### Running the Performance Test
+### Running the Performance Simulation
 
 To run the performance testing script, execute the following command from the root directory of your project:
 
 ```shell
-./gradlew runPerformanceTest
+./gradlew runPerformanceSimulation
 ```
 Alternatively, (a) in Intellij, you can locate the Gradle task under 'Other' and run it from there or (b) run the class directly from the file location.
 
@@ -252,7 +252,7 @@ The script will provide the following output upon completion:
 * **Request failures:** Any failed requests will be logged with their status code and response body
 
 ### Customization
-To customize the performance test settings, edit the following variables within the script:
+To customize the performance simulation settings, edit the following variables within the script:
 
 ```kotlin
 val totalRequests = 100000 // Total number of requests to send

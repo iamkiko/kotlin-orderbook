@@ -36,8 +36,18 @@ class MatchingEngine(private val tradeService: TradeService, private val orderBo
                 totalMatchedQuantity += matchResult.matchQuantity
                 fulfilledTradePrice = matchResult.fulfilledTradePrice
 
-                updateOrderQuantityAfterMatch(orderBook.bids, bestBid.key, bestBid.value.firstKey(), matchResult.matchQuantity)
-                updateOrderQuantityAfterMatch(orderBook.asks, bestAsk.key, bestAsk.value.firstKey(), matchResult.matchQuantity)
+                updateOrderQuantityAfterMatch(
+                    orderBook.bids,
+                    bestBid.key,
+                    bestBid.value.firstKey(),
+                    matchResult.matchQuantity
+                )
+                updateOrderQuantityAfterMatch(
+                    orderBook.asks,
+                    bestAsk.key,
+                    bestAsk.value.firstKey(),
+                    matchResult.matchQuantity
+                )
 
                 orderBook.updateLastUpdated()
             }

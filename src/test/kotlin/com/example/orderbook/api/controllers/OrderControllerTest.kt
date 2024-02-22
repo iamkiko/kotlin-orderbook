@@ -42,9 +42,11 @@ class OrderControllerTest {
         this.orderBookService = OrderBookService(orderBook, tradeService, orderValidator, orderManager, matchingEngine)
 
         this.jwtAuth = JWTAuth.create(vertx, JWTAuthOptions().apply {
-            addPubSecKey(PubSecKeyOptions()
-                .setAlgorithm("HS256")
-                .setBuffer(dotenv["SYMMETRIC_KEY"]))
+            addPubSecKey(
+                PubSecKeyOptions()
+                    .setAlgorithm("HS256")
+                    .setBuffer(dotenv["SYMMETRIC_KEY"])
+            )
         })
 
         val jwtAuthHandler = JWTAuthHandler.create(jwtAuth)
@@ -59,7 +61,6 @@ class OrderControllerTest {
             .listen(8888, vertxTestContext.succeedingThenComplete())
     }
 
-    // TODO() test user
     private fun generateTestToken(): String {
         return jwtAuth.generateToken(JsonObject().put("sub", "testUser"))
     }

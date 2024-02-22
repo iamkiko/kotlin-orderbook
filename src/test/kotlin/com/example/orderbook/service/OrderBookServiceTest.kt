@@ -1,4 +1,5 @@
 package com.example.orderbook.service
+
 import com.example.orderbook.model.*
 import io.mockk.*
 import org.junit.jupiter.api.Assertions
@@ -12,7 +13,6 @@ import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 class OrderBookServiceTest {
-
     private lateinit var orderBookService: OrderBookService
     private val tradeService = mockk<TradeService>(relaxed = true)
     private val orderValidator = mockk<OrderValidator>()
@@ -30,7 +30,6 @@ class OrderBookServiceTest {
         every { orderValidator.isValidOrder(any()) } returns true
         orderBookService = OrderBookService(orderBook, tradeService, orderValidator, orderManager, matchingEngine)
     }
-
 
     @Test
     fun `should return an empty order book when there are no bids or asks and the service has been initialized`() {

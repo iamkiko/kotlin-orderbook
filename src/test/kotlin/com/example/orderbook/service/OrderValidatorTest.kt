@@ -24,7 +24,6 @@ class OrderValidatorTest {
 
     private lateinit var orderValidator: OrderValidator
 
-
     @BeforeEach
     fun setUp() {
         orderValidator = OrderValidator()

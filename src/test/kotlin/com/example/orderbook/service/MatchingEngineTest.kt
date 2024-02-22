@@ -1,4 +1,5 @@
 package com.example.orderbook.service
+
 import com.example.orderbook.api.dto.TradeDTO
 import com.example.orderbook.model.Order
 import com.example.orderbook.model.OrderBook
@@ -16,13 +17,11 @@ import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 class MatchingEngineTest {
-
     private lateinit var tradeService: TradeService
     private lateinit var orderBook: OrderBook
     private lateinit var matchingEngine: MatchingEngine
     private lateinit var orderManager: OrderManager
     private val capturedTrades = mutableListOf<TradeDTO>()
-
 
     @BeforeEach
     fun setUp() {
@@ -67,7 +66,14 @@ class MatchingEngineTest {
         assertTrue(matchResult.isOrderMatched)
         assertEquals(BigDecimal("1.0"), matchResult.totalMatchedQuantity)
         assertEquals(buyOrder.price, matchResult.fulfilledPrice)
-        verify { tradeService.recordTrade(matchResult.fulfilledPrice, matchResult.totalMatchedQuantity, buyOrder.currencyPair, any()) }
+        verify {
+            tradeService.recordTrade(
+                matchResult.fulfilledPrice,
+                matchResult.totalMatchedQuantity,
+                buyOrder.currencyPair,
+                any()
+            )
+        }
     }
 
     @Test
@@ -131,9 +137,12 @@ class MatchingEngineTest {
     @Test
     fun `should fill orders fully and partially up to a certain price based on price priority`() {
         // given ... buy orders which are >= current sell orders
-        val sellOrderAtCurrentPrice = Order(OrderSide.SELL, BigDecimal("1.0"), BigDecimal("40000.0"), "BTCUSDC", Instant.now())
-        val sellOrderAtLowestPrice = Order(OrderSide.SELL, BigDecimal("1.0"), BigDecimal("39500.0"), "BTCUSDC", Instant.now())
-        val buyOrderAtCurrentPrice = Order(OrderSide.BUY, BigDecimal("1.5"), BigDecimal("40000.0"), "BTCUSDC", Instant.now())
+        val sellOrderAtCurrentPrice =
+            Order(OrderSide.SELL, BigDecimal("1.0"), BigDecimal("40000.0"), "BTCUSDC", Instant.now())
+        val sellOrderAtLowestPrice =
+            Order(OrderSide.SELL, BigDecimal("1.0"), BigDecimal("39500.0"), "BTCUSDC", Instant.now())
+        val buyOrderAtCurrentPrice =
+            Order(OrderSide.BUY, BigDecimal("1.5"), BigDecimal("40000.0"), "BTCUSDC", Instant.now())
 
         // when ... we add the orders to the order book and match them
         orderManager.addOrder(sellOrderAtCurrentPrice)
@@ -156,9 +165,10 @@ class MatchingEngineTest {
     fun `should execute trades at best available price`() {
         // given ... matching buy and sell orders with different prices
         val highPriceBuyOrder = Order(OrderSide.BUY, BigDecimal("1.0"), BigDecimal("45000.0"), "BTCUSDC", Instant.now())
-        val lowPriceSellOrder = Order(OrderSide.SELL, BigDecimal("1.0"), BigDecimal("44000.0"), "BTCUSDC", Instant.now())
+        val lowPriceSellOrder =
+            Order(OrderSide.SELL, BigDecimal("1.0"), BigDecimal("44000.0"), "BTCUSDC", Instant.now())
 
-    // when ... we add orders to the order book and match them
+        // when ... we add orders to the order book and match them
         orderManager.addOrder(highPriceBuyOrder)
         orderManager.addOrder(lowPriceSellOrder)
         matchingEngine.matchOrders()

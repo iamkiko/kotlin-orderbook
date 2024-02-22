@@ -19,6 +19,7 @@ class TradeService {
         )
         TradeRepository.addTrade(trade)
     }
+
     fun getTradeDTOs(): List<TradeDTO> = TradeRepository.getTrades().map { trade ->
         TradeDTO(
             id = trade.id,

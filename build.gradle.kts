@@ -48,9 +48,9 @@ tasks.test {
     useJUnitPlatform()
 }
 
-tasks.register<JavaExec>("runPerformanceTest") {
+tasks.register<JavaExec>("runPerformanceSimulation") {
     classpath = sourceSets["main"].runtimeClasspath
-    mainClass = "com/example/orderbook/util/PerformanceTestKt"
+    mainClass = "com/example/orderbook/util/PerformanceSimulationKt"
 }
 
 kotlin {
