@@ -41,7 +41,8 @@ Feel free to peruse the build.gradle for the comprehensive list.
 
 ## Usage
 By default, the app will run on port 8085, you can change that in the MainVerticle and in application.conf
-To secure and manage access to placing limit orders on /api/orders/limit, our application utilizes JWT for authentication.
+
+To secure and manage access to placing limit orders on `/api/orders/limit`, our application utilizes JWT for authentication.
 
 ## Authentication Setup
 Before being able to place limit orders on `/api/orders/limit`, you will need to:
