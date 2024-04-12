@@ -16,6 +16,7 @@ class OrderManager(
         orderMap[order.price] = orderMap.getOrDefault(order.price, TreeMap()).apply {
             this[order.timestamp] = order
         }
+        println("Added ${order.side} order for $${order.price} at ${order.timestamp}")
         orderBook.updateLastUpdated()
     }
 

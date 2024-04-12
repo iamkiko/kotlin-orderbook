@@ -42,7 +42,7 @@ class MatchingEngineTest {
         }
 
         orderBook = OrderBook(
-            bids = TreeMap<BigDecimal, TreeMap<Instant, Order>>(),
+            bids = TreeMap<BigDecimal, TreeMap<Instant, Order>>(reverseOrder()),
             asks = TreeMap<BigDecimal, TreeMap<Instant, Order>>(),
             lastUpdated = Instant.now(),
             tradeSequenceNumber = 0L
@@ -162,20 +162,47 @@ class MatchingEngineTest {
     }
 
     @Test
-    fun `should execute trades at best available price`() {
+    fun `should execute trades at best available price for the taker`() {
         // given ... matching buy and sell orders with different prices
-        val highPriceBuyOrder = Order(OrderSide.BUY, BigDecimal("1.0"), BigDecimal("45000.0"), "BTCUSDC", Instant.now())
+        // and ... a sell order already on the orderbook
         val lowPriceSellOrder =
             Order(OrderSide.SELL, BigDecimal("1.0"), BigDecimal("44000.0"), "BTCUSDC", Instant.now())
+        val highPriceBuyOrder = Order(OrderSide.BUY, BigDecimal("1.0"), BigDecimal("45000.0"), "BTCUSDC", Instant.now())
 
         // when ... we add orders to the order book and match them
         orderManager.addOrder(highPriceBuyOrder)
         orderManager.addOrder(lowPriceSellOrder)
         matchingEngine.matchOrders()
 
-        // then ... the buy order is executed at the lowest available price
+        // then ... the buy order (taker) is filled at the best price
         assertFalse(capturedTrades.isEmpty())
         val lastTrade = capturedTrades.last()
         assertEquals(BigDecimal("44000.0"), lastTrade.price)
+    }
+
+    @Test
+    fun `should correctly capture the executed trade price` () {
+        // given ... orders on two different price levels
+        val buyOrder1 = Order(OrderSide.BUY, BigDecimal("1.0"), BigDecimal("10000.0"), "BTCUSDC", Instant.parse("2024-04-12T10:00:00Z"))
+        val buyOrder2 = Order(OrderSide.BUY, BigDecimal("1.0"), BigDecimal("15000.0"), "BTCUSDC", Instant.parse("2024-04-12T10:05:00Z"))
+        val sellOrder = Order(OrderSide.SELL, BigDecimal("2.0"), BigDecimal("10000.0"), "BTCUSDC", Instant.parse("2024-04-12T10:10:00Z"))
+
+        // when ... both have been matched by one order
+        orderManager.addOrder(buyOrder1)
+        orderManager.addOrder(buyOrder2)
+        orderManager.addOrder(sellOrder)
+
+        println("OrderBook bids before matching: ${orderBook.bids}")
+        println("OrderBook asks before matching: ${orderBook.asks}")
+
+        matchingEngine.matchOrders()
+        capturedTrades.forEach { trade ->
+            println("Trade captured: ${trade.price} at ${trade.timestamp} for ${trade.quantity}")
+        }
+        // then ... we should correctly return the executed price
+        val firstTrade = capturedTrades.first()
+        val lastTrade = capturedTrades.last()
+        assertEquals(BigDecimal("10000.0"), lastTrade.price)
+        assertEquals(BigDecimal("15000.0"), firstTrade.price)
     }
 }

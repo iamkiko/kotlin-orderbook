@@ -26,6 +26,8 @@ class MatchingEngine(private val tradeService: TradeService, private val orderBo
             val bestBid = orderBook.getBestBid()
             val bestAsk = orderBook.getBestAsk()
 
+            println("Matching best bid: $${bestBid?.key} with best ask: $${bestAsk?.key}")
+
             // if price has spread, then don't match or if asks/bids don't exist
             if (bestBid == null || bestAsk == null || bestBid.key < bestAsk.key) break
 
@@ -35,11 +37,12 @@ class MatchingEngine(private val tradeService: TradeService, private val orderBo
                 isOrderMatched = true
                 totalMatchedQuantity += matchResult.matchQuantity
                 fulfilledTradePrice = matchResult.fulfilledTradePrice
+                println("Matched: Bid $${bestBid.key} with Ask $${bestAsk.key} for ${matchResult.matchQuantity} BTC at $${matchResult.fulfilledTradePrice}")
 
                 updateOrderQuantityAfterMatch(
                     orderBook.bids,
-                    bestBid.key,
-                    bestBid.value.firstKey(),
+                    bestBid.key, // identify price level
+                    bestBid.value.firstKey(), // identify order by timestamp
                     matchResult.matchQuantity
                 )
                 updateOrderQuantityAfterMatch(
@@ -74,11 +77,14 @@ class MatchingEngine(private val tradeService: TradeService, private val orderBo
         // figure out the overlap between asks/bids based on the smaller amount so it can match
         val matchQuantity = bidOrderEntry.value.quantity.min(askOrderEntry.value.quantity)
 
-        // ensure the best price is always used for the trade
-        val fulfilledTradePrice = if (bestBid.key >= bestAsk.key) bestAsk.key else bestBid.key
-
         // determine the taker side based on the timestamps of the orders
         val takerSide = determineTakerSide(bestBid.value, bestAsk.value)
+
+        // ensure the best price is always used for the trade
+        val fulfilledTradePrice = when(takerSide) {
+            OrderSide.SELL -> bestBid.key
+            OrderSide.BUY -> bestAsk.key
+        }
 
         tradeService.recordTrade(fulfilledTradePrice, matchQuantity, bidOrderEntry.value.currencyPair, takerSide)
 
